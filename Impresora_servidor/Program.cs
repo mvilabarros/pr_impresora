@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Management;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -9,11 +10,48 @@ using System.Threading;
 
 namespace Impresora_servidor
 {
+    //TODO detectar sistema operativo
+    //TODO detectar impresora, enviar estado impresora a cliente
+    //TODO con: puertos, enviar archivo stream - borrar archivos enviados
+
     class Program
     {
         string carpeta = Path.GetTempPath();
+        string escritorio = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
         static bool conectar = false, apagar = false;
         Socket s = null;
+        
+        public void detectarImpresora()
+        {
+            //managementScope
+            ManagementScope scope = new ManagementScope(@"\root\cimv2");
+            scope.Connect();
+
+            //seleccionar impresoras
+            ManagementObjectSearcher buscar = new ManagementObjectSearcher("SELECT * FROM Win32_Printer");
+
+            string nombreImpresora = "";
+            if (buscar.Get().Count == 0)
+            {
+                Console.WriteLine("No hay impresora conectada");
+            }
+            else
+            {
+                foreach (ManagementObject impresora in buscar.Get())
+                {
+                    nombreImpresora = impresora["Name"].ToString().ToLower();
+                    Console.WriteLine(nombreImpresora);
+                    if (impresora["WorkOffline"].ToString().ToLower().Equals("true"))
+                    {
+                        Console.WriteLine("Impresora offline." + nombreImpresora);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Impresora online." + nombreImpresora);
+                    }
+                }
+            }
+        }
 
         public void iniciaServidorImpresora()
         {
@@ -64,10 +102,25 @@ namespace Impresora_servidor
             {
                 mensaje = sr.ReadLine();
                 Console.WriteLine(mensaje);
-              
+                Console.WriteLine("Cliente " + ieCliente.Address + "enviando documento: " + mensaje);
+                Console.WriteLine(carpeta + mensaje);
+                
+                using (var output = File.Create(carpeta + mensaje)) //TODO stream, UnauthorizedAccessException
+                {
+                    //1KB
+                    var buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = ns.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        output.Write(buffer, 0, bytesRead);
+                    }
+                }
+                Console.Write(carpeta);
+                
             }
-            catch (IOException)
+            catch (IOException e)
             {
+                Console.WriteLine("Se ha producido un error con el archivo. Error: " + e.Message);
 
             }
             catch (ObjectDisposedException)
@@ -95,7 +148,6 @@ namespace Impresora_servidor
             Program imp = new Program();
             imp.iniciaServidorImpresora();
             Console.ReadLine();
-
         }
     }
 }
