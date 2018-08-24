@@ -57,7 +57,6 @@ namespace Impresora_cliente
         private void button1_Click(object sender, EventArgs e)
         {
             conexion(ip, puerto);
-
         }
 
         private void Form1_Load(object sender, EventArgs e)

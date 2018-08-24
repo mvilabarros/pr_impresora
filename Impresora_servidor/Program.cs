@@ -1,5 +1,8 @@
-﻿using System;
+﻿using PdfiumViewer;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
 using System.Management;
@@ -18,9 +21,11 @@ namespace Impresora_servidor
     {
         string carpeta = Path.GetTempPath();
         string escritorio = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        string archivo;
+        List<String> archivos; //lista archivos guardados para borrar
         static bool conectar = false, apagar = false;
         Socket s = null;
-        
+
         public void detectarImpresora()
         {
             //managementScope
@@ -53,6 +58,79 @@ namespace Impresora_servidor
             }
         }
 
+
+        public bool imprime(string archivo)
+        {
+            try
+            {
+                Process p = new Process();
+                // p.StartInfo.UseShellExecute = false;
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.FileName = archivo;
+                p.StartInfo.Verb = "print";
+                p.Start();
+                p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                if (p.HasExited == false)
+                {
+                    p.WaitForExit(10000);
+                }
+                p.EnableRaisingEvents = true;
+                //p.CloseMainWindow();
+                p.Close();
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
+        public bool imprimePDF(string impresora, string papel, string archivo, int copias)
+        {
+            try
+            {
+                // Propiedades impresora
+                var printerSettings = new PrinterSettings
+                {
+                    PrinterName = impresora,
+                    Copies = (short)copias,
+                };
+
+                // Propiedades página, tamaño página
+                var pageSettings = new PageSettings(printerSettings)
+                {
+                    Margins = new Margins(0, 0, 0, 0),
+                };
+                foreach (PaperSize paperSize in printerSettings.PaperSizes)
+                {
+                    if (paperSize.PaperName == papel)
+                    {
+                        pageSettings.PaperSize = paperSize;
+                        break;
+                    }
+                }
+
+                // Imprimir PDF
+                using (var document = PdfDocument.Load(archivo))
+                {
+                    using (var printDocument = document.CreatePrintDocument())
+                    {
+                        printDocument.PrinterSettings = printerSettings;
+                        printDocument.DefaultPageSettings = pageSettings;
+                        printDocument.PrintController = new StandardPrintController();
+                        printDocument.Print();
+                    }
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return false;
+            }
+        }
+
+
         public void iniciaServidorImpresora()
         {
             try
@@ -71,6 +149,9 @@ namespace Impresora_servidor
                     Thread hilo = new Thread(hiloCliente);
                     hilo.IsBackground = true;
                     hilo.Start(cliente);
+
+                    //imprimePDF(printerG, "PaperKind.A4", archivo, 1);
+
                 }
             }
             catch (SocketException)
@@ -104,7 +185,7 @@ namespace Impresora_servidor
                 Console.WriteLine(mensaje);
                 Console.WriteLine("Cliente " + ieCliente.Address + "enviando documento: " + mensaje);
                 Console.WriteLine(carpeta + mensaje);
-                
+
                 using (var output = File.Create(carpeta + mensaje)) //TODO stream, UnauthorizedAccessException
                 {
                     //1KB
@@ -116,7 +197,7 @@ namespace Impresora_servidor
                     }
                 }
                 Console.Write(carpeta);
-                
+
             }
             catch (IOException e)
             {
