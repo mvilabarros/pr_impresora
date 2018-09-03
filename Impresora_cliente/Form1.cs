@@ -14,9 +14,12 @@ namespace Impresora_cliente
 {
     public partial class Form1 : Form
     {
+        //TODO pingForm
+
         string archivo, nombreArchivo;
         static string ip = "127.0.0.1";
         static int puerto = 31416;
+        static int hojas = 100; //hojas documento
         IPEndPoint ie;
         Socket servidor;
         NetworkStream ns;
@@ -44,13 +47,13 @@ namespace Impresora_cliente
                     sw.WriteLine(nombreArchivo);
                     sw.Flush();
                     servidor.SendFile(archivo);
-                    label1.Text += "Enviando archivo...";
+                    lbArchivo.Text += "Enviando archivo...";
                 }
                 servidor.Close();
             }
             catch (SocketException ex)
             {
-                label1.Text = String.Format("Error de conexión: {0}" + Environment.NewLine + "Código de error: {1}({2})", ex.Message, (SocketError)ex.ErrorCode, ex.ErrorCode);
+                lbArchivo.Text = String.Format("Error de conexión: {0}" + Environment.NewLine + "Código de error: {1}({2})", ex.Message, (SocketError)ex.ErrorCode, ex.ErrorCode);
             }
         }
 
@@ -62,6 +65,25 @@ namespace Impresora_cliente
         private void Form1_Load(object sender, EventArgs e)
         {
             //label1.Text = "Conectado a: ";
+            for (int i = 1; i <= hojas; i++)
+            {
+                string[] num = { i.ToString() };
+                cbCopias.Items.AddRange(num);
+                cbCopias.SelectedIndex = 0;
+            }
+        }
+
+        private void btnPing_Click(object sender, EventArgs e)
+        {
+            //lblNombre
+            //lblEstado
+            /*
+             * if ping correcto
+             *      lblNombre.Text ++
+             *      lblEstado.Text ++
+             *  else
+             *      lbl no hay datos disponibles
+             */
         }
 
         private void btn_buscar_Click(object sender, EventArgs e)
@@ -85,7 +107,7 @@ namespace Impresora_cliente
                             //getExtension
                             nombreArchivo = Path.GetFileName(openFileDialog1.FileName);
                             archivo = Path.GetFullPath(openFileDialog1.FileName);
-                            label1.Text = archivo;
+                            lbArchivo.Text = archivo;
                         }
                     }
                 }

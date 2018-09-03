@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
@@ -15,14 +16,20 @@ namespace Impresora_servidor
 {
     //TODO detectar sistema operativo
     //TODO detectar impresora, enviar estado impresora a cliente
-    //TODO con: puertos, enviar archivo stream - borrar archivos enviados
-
+    //TODO con: enviar archivo stream - borrar archivos enviados -> lista archivos
+    //TODO imprimir con/sin color, X páginas, intercalar, repetir X páginas
     class Program
     {
         string carpeta = Path.GetTempPath();
         string escritorio = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
         string archivo;
-        List<String> archivos; //lista archivos guardados para borrar
+        int puerto = 31416;
+        IPEndPoint ie;
+        bool conectado = false;
+        StreamReader streamToPrint;
+        private Font printFont;
+
+        List<String> archivos; //guardar documentos en temp, borrar al cerrar servidor
         static bool conectar = false, apagar = false;
         Socket s = null;
 
@@ -58,8 +65,30 @@ namespace Impresora_servidor
             }
         }
 
+        /*
+        public void imprimirOpciones()//añadir variables
+        {
+            PrinterSettings opciones = new PrinterSettings()
+            {
+                FromPage = 1,
+                ToPage = 5,
+                PrinterName = "",
+                Duplex = Duplex.Default, // -1 default, horizontal 3 dos lados-hor, simplex 1 un lado, vertical 2 dos lados vert
+                Copies = 1,
+                PrintRange = PrintRange.Selection,
 
-        public bool imprime(string archivo)
+            };
+
+            PrintDocument documento = new PrintDocument()
+            {
+                PrinterSettings = opciones
+            };
+
+            documento.Print();
+        }
+        */
+
+        public bool imprime(string archivo)//encontrar opciones
         {
             try
             {
@@ -130,45 +159,43 @@ namespace Impresora_servidor
             }
         }
 
-
+        //TODO limite puerto
         public void iniciaServidorImpresora()
         {
-            try
+            while (!conectado)
             {
-                IPEndPoint ie = new IPEndPoint(IPAddress.Any, 31416);
-                s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                s.Bind(ie);
-                s.Listen(5);
-                Console.WriteLine("Usando puerto: " + 31416);
-                Console.WriteLine("A la espera");
-                conectar = true;
-
-                while (conectar)
+                try
                 {
-                    Socket cliente = s.Accept();
-                    Thread hilo = new Thread(hiloCliente);
-                    hilo.IsBackground = true;
-                    hilo.Start(cliente);
-
-                    //imprimePDF(printerG, "PaperKind.A4", archivo, 1);
-
+                    ie = new IPEndPoint(IPAddress.Any, puerto);
+                    s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    s.Bind(ie);
+                    conectar = true;
+                    break;
+                }
+                catch (SocketException)
+                {
+                    conectado = false;
+                }
+                if (!conectado)
+                {
+                    Console.WriteLine("Puerto " + puerto + " ocupado. Probando siguiente puerto.");
+                    puerto++;
                 }
             }
-            catch (SocketException)
+            s.Listen(5);
+            Console.WriteLine("Usando puerto: " + puerto);
+            Console.WriteLine("A la espera");
+
+            while (conectar)
             {
-                conectar = false;
-                if (!apagar)
-                    Console.WriteLine("Puerto " + 31416 + " ocupado. Cerrando servidor.");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-            finally
-            {
+                Socket cliente = s.Accept();
+                Thread hilo = new Thread(hiloCliente);
+                hilo.IsBackground = true;
+                hilo.Start(cliente);
+                //imprimePDF(printerG, "PaperKind.A4", archivo, 1);
+
             }
         }
-
         public void hiloCliente(object socket)
         {
             //TODO comprobar servidor tiene impresora 
@@ -218,9 +245,38 @@ namespace Impresora_servidor
                 sw.Close();
                 sr.Close();
                 ns.Close();
-
                 cliente.Close();
             }
+        }
+
+        //impresora sólo devuelve estado cuando imprime
+        public void estado()
+        {
+
+            // Online               0
+
+            // Lid Open        4194432
+
+            // Out of paper      144
+
+            // Out of paper/Lid open 4194448
+
+            // Printing             1024
+
+            // Initializing          32768
+
+            // Manual Feed in Progress 160
+
+            // Offline                 4096
+            /*
+             * foreach estado in impresora
+             * switch estado
+             * case 0
+             *  console -> online
+             * case 144
+             *  console -> papel
+             * 
+             */ 
         }
 
 
