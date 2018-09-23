@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.btn_imprimir = new System.Windows.Forms.Button();
+            this.btnImprimir = new System.Windows.Forms.Button();
             this.lbArchivo = new System.Windows.Forms.Label();
-            this.btn_buscar = new System.Windows.Forms.Button();
+            this.btnBuscar = new System.Windows.Forms.Button();
             this.txtDocumento = new System.Windows.Forms.TextBox();
             this.lblNombre = new System.Windows.Forms.Label();
             this.lblEstado = new System.Windows.Forms.Label();
@@ -61,21 +61,22 @@
             this.opcionesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ayudaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.acercadeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnPdf = new System.Windows.Forms.Button();
             this.gbImpresora.SuspendLayout();
             this.gbPaginas.SuspendLayout();
             this.gbCopias.SuspendLayout();
             this.menu.SuspendLayout();
             this.SuspendLayout();
             // 
-            // btn_imprimir
+            // btnImprimir
             // 
-            this.btn_imprimir.Location = new System.Drawing.Point(361, 372);
-            this.btn_imprimir.Name = "btn_imprimir";
-            this.btn_imprimir.Size = new System.Drawing.Size(75, 23);
-            this.btn_imprimir.TabIndex = 0;
-            this.btn_imprimir.Text = "Imprimir";
-            this.btn_imprimir.UseVisualStyleBackColor = true;
-            this.btn_imprimir.Click += new System.EventHandler(this.button1_Click);
+            this.btnImprimir.Location = new System.Drawing.Point(361, 372);
+            this.btnImprimir.Name = "btnImprimir";
+            this.btnImprimir.Size = new System.Drawing.Size(75, 23);
+            this.btnImprimir.TabIndex = 0;
+            this.btnImprimir.Text = "Imprimir";
+            this.btnImprimir.UseVisualStyleBackColor = true;
+            this.btnImprimir.Click += new System.EventHandler(this.btnImprimir_Click);
             // 
             // lbArchivo
             // 
@@ -86,15 +87,15 @@
             this.lbArchivo.TabIndex = 1;
             this.lbArchivo.Text = "Selecciona un documento: ";
             // 
-            // btn_buscar
+            // btnBuscar
             // 
-            this.btn_buscar.Location = new System.Drawing.Point(12, 372);
-            this.btn_buscar.Name = "btn_buscar";
-            this.btn_buscar.Size = new System.Drawing.Size(75, 23);
-            this.btn_buscar.TabIndex = 2;
-            this.btn_buscar.Text = "Seleccionar";
-            this.btn_buscar.UseVisualStyleBackColor = true;
-            this.btn_buscar.Click += new System.EventHandler(this.btn_buscar_Click);
+            this.btnBuscar.Location = new System.Drawing.Point(12, 372);
+            this.btnBuscar.Name = "btnBuscar";
+            this.btnBuscar.Size = new System.Drawing.Size(75, 23);
+            this.btnBuscar.TabIndex = 2;
+            this.btnBuscar.Text = "Seleccionar";
+            this.btnBuscar.UseVisualStyleBackColor = true;
+            this.btnBuscar.Click += new System.EventHandler(this.btn_buscar_Click);
             // 
             // txtDocumento
             // 
@@ -287,7 +288,7 @@
             this.ayudaToolStripMenuItem});
             this.menu.Location = new System.Drawing.Point(0, 0);
             this.menu.Name = "menu";
-            this.menu.Size = new System.Drawing.Size(454, 24);
+            this.menu.Size = new System.Drawing.Size(463, 24);
             this.menu.TabIndex = 11;
             this.menu.Text = "menuStrip1";
             // 
@@ -326,6 +327,7 @@
             this.salirToolStripMenuItem.Name = "salirToolStripMenuItem";
             this.salirToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.salirToolStripMenuItem.Text = "&Salir";
+            this.salirToolStripMenuItem.Click += new System.EventHandler(this.salirToolStripMenuItem_Click);
             // 
             // herramientasToolStripMenuItem
             // 
@@ -355,19 +357,32 @@
             this.acercadeToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
             this.acercadeToolStripMenuItem.Text = "&Acerca de...";
             // 
+            // btnPdf
+            // 
+            this.btnPdf.Location = new System.Drawing.Point(191, 372);
+            this.btnPdf.Name = "btnPdf";
+            this.btnPdf.Size = new System.Drawing.Size(75, 23);
+            this.btnPdf.TabIndex = 13;
+            this.btnPdf.Text = "Previsualizar";
+            this.btnPdf.UseVisualStyleBackColor = true;
+            this.btnPdf.Click += new System.EventHandler(this.btnPdf_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(454, 420);
+            this.ClientSize = new System.Drawing.Size(463, 420);
+            this.Controls.Add(this.btnPdf);
             this.Controls.Add(this.menu);
             this.Controls.Add(this.gbCopias);
             this.Controls.Add(this.gbPaginas);
             this.Controls.Add(this.gbImpresora);
             this.Controls.Add(this.txtDocumento);
-            this.Controls.Add(this.btn_buscar);
+            this.Controls.Add(this.btnBuscar);
             this.Controls.Add(this.lbArchivo);
-            this.Controls.Add(this.btn_imprimir);
+            this.Controls.Add(this.btnImprimir);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
             this.Name = "Form1";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -386,9 +401,9 @@
 
         #endregion
 
-        private System.Windows.Forms.Button btn_imprimir;
+        private System.Windows.Forms.Button btnImprimir;
         private System.Windows.Forms.Label lbArchivo;
-        private System.Windows.Forms.Button btn_buscar;
+        private System.Windows.Forms.Button btnBuscar;
         private System.Windows.Forms.TextBox txtDocumento;
         private System.Windows.Forms.Label lblNombre;
         private System.Windows.Forms.Label lblEstado;
@@ -418,6 +433,7 @@
         private System.Windows.Forms.Label lblFin;
         private System.Windows.Forms.Label lblInicio;
         private System.Windows.Forms.RadioButton rbRango;
+        private System.Windows.Forms.Button btnPdf;
     }
 }
 

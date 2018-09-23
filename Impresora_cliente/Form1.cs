@@ -1,76 +1,69 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
+using System.Windows;
 using System.Windows.Forms;
+using Microsoft.Office.Interop.Word;
+using iTextSharp.text.pdf;
+using PdfiumViewer;
 
 namespace Impresora_cliente
 {
     public partial class Form1 : Form
     {
         //TODO pingForm
+        //TODO convertir archivo a PDF -> aplicar opciones -> nuevo PDF -> enviar al servidor
+        //TODO verificar archivos, crear carpeta en TEMP, borrar al cerrar cliente
+        //TODO mostrar PDF en otro forms
 
-        string archivo, nombreArchivo;
         static string ip = "127.0.0.1";
         static int puerto = 31416;
-        static int hojas = 100; //hojas documento
-        IPEndPoint ie;
-        Socket servidor;
-        NetworkStream ns;
-        StreamReader sr;
-        StreamWriter sw;
+
+        static string dataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        static string documentosImpresora = Path.Combine(dataDir, "documentosImpresora");
+
+        private string archivo, nombreArchivo, nombreImpresora, estadoImpresora;
+
+        private string archivoCortado;
+
+        static int hojas = 100;
+
+        private object oMissing = System.Reflection.Missing.Value;
+
+        private IPEndPoint ie;
+        private Socket servidor;
+        private NetworkStream ns;
+        private StreamReader sr;
+        private StreamWriter sw;
+
+        private bool arch = false; //si archivo seleccionado = true
+        private bool con = false; //si impresora conectada = true;
 
         public Form1()
         {
             InitializeComponent();
         }
 
-        private void conexion(string ip, int puerto)
-        {
-            try
-            {
-                ie = new IPEndPoint(IPAddress.Parse(ip), puerto);
-                servidor = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                servidor.Connect(ie);
-                ns = new NetworkStream(servidor);
-                sr = new StreamReader(ns);
-                sw = new StreamWriter(ns);
-
-                if (servidor.Available == 0)
-                {
-                    sw.WriteLine(nombreArchivo);
-                    sw.Flush();
-                    servidor.SendFile(archivo);
-                    lbArchivo.Text += "Enviando archivo...";
-                }
-                servidor.Close();
-            }
-            catch (SocketException ex)
-            {
-                lbArchivo.Text = String.Format("Error de conexión: {0}" + Environment.NewLine + "Código de error: {1}({2})", ex.Message, (SocketError)ex.ErrorCode, ex.ErrorCode);
-            }
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            conexion(ip, puerto);
-        }
-
         private void Form1_Load(object sender, EventArgs e)
         {
-            //label1.Text = "Conectado a: ";
+            //btnPdf.Enabled = false;
+            Directory.CreateDirectory(documentosImpresora);
             for (int i = 1; i <= hojas; i++)
             {
                 string[] num = { i.ToString() };
                 cbCopias.Items.AddRange(num);
                 cbCopias.SelectedIndex = 0;
             }
+        }
+
+        private void btnImprimir_Click(object sender, EventArgs e) //btnImprimir
+        {
+            //conexion(ip, puerto, "imprimir");
+
+            //btnPing -> conexion("127.0.0.1", 31416, "ping");
+
+            //comprobar impresora + comprobar archivo ->comprobar páginas -> cortar PDF -> mandar pdf nuevo a server + copias, intercalar
         }
 
         private void btnPing_Click(object sender, EventArgs e)
@@ -84,11 +77,25 @@ namespace Impresora_cliente
              *  else
              *      lbl no hay datos disponibles
              */
+            PingForm ping = new PingForm();
+            DialogResult dia;
+            dia = ping.ShowDialog();
+            switch (dia)
+            {
+                case DialogResult.OK:
+                    conexion(ping.txtIP.Text, Convert.ToInt32(ping.txtPuerto.Text), "ping");
+                    //conexion("127.0.0.1", 31416, "ping");
+                    break;
+                case DialogResult.Cancel:
+                    con = false;
+                    break;
+            }
+
         }
 
         private void btn_buscar_Click(object sender, EventArgs e)
         {
-            Stream myStream = null;
+            Stream str = null;
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
 
             openFileDialog1.InitialDirectory = "c:\\";
@@ -100,23 +107,131 @@ namespace Impresora_cliente
             {
                 try
                 {
-                    if ((myStream = openFileDialog1.OpenFile()) != null)
+                    if ((str = openFileDialog1.OpenFile()) != null)
                     {
-                        using (myStream)
+                        using (str)
                         {
                             //getExtension
                             nombreArchivo = Path.GetFileName(openFileDialog1.FileName);
                             archivo = Path.GetFullPath(openFileDialog1.FileName);
-                            lbArchivo.Text = archivo;
+                            txtDocumento.Text = archivo;
+                            arch = true;
                         }
                     }
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show("Se ha producido un error con el archivo. Error: " + ex.Message);
+                    arch = false;
                 }
             }
+        }
 
+        private void conexion(string ip, int puerto, string opcion)
+        {
+            try
+            {
+                ie = new IPEndPoint(IPAddress.Parse(ip), puerto);
+                servidor = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                servidor.Connect(ie);
+                ns = new NetworkStream(servidor);
+                sr = new StreamReader(ns);
+                sw = new StreamWriter(ns);
+
+                if (servidor.Available == 0)
+                {
+                    if (opcion == "imprimir")
+                    {
+                        sw.WriteLine(nombreArchivo);
+                        sw.Flush();
+                        servidor.SendFile(archivo);
+                        lbArchivo.Text += "Enviando archivo...";
+                    }
+                    else
+                    {
+                        sw.WriteLine("ping");
+                        sw.Flush();
+                        nombreImpresora = sr.ReadLine();
+                        estadoImpresora = sr.ReadLine();
+                        lblNombre.Text += nombreImpresora;
+                        lblEstado.Text += estadoImpresora;
+                        con = true;
+                    }
+                }
+                servidor.Close();
+            }
+            catch (SocketException ex)
+            {
+                lbArchivo.Text = String.Format("Error de conexión: {0}" + Environment.NewLine + "Código de error: {1}({2})", ex.Message, (SocketError)ex.ErrorCode, ex.ErrorCode);
+                con = false;
+            }
+            catch (IOException e)
+            {
+                lbArchivo.Text = String.Format(e.Message);
+                con = false;
+            }
+            finally
+            {
+                if (sw != null) sw.Close();
+                if (sr != null) sr.Close();
+                if (ns != null) ns.Close();
+            }
+        }
+
+        private void salirToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (Directory.Exists(documentosImpresora))
+            {
+                Directory.Delete(documentosImpresora, true);
+            }
+            this.Close();
+        }
+
+        private void btnPdf_Click(object sender, EventArgs e)
+        {
+            //cambiar texto form a nombre archivo 
+            if (arch)
+            {
+                CargarPdf cargar = new CargarPdf();
+                cargar.ruta = archivo;
+                cargar.ShowDialog();
+            }
+            //else no hay archivo seleccionado
+        }
+
+        private Microsoft.Office.Interop.Word.Document wordDocument { get; set; }
+
+        private void wordPdf(string entradaArchivo, string salidaArchivo)
+        {
+            //necesario Office para convertir archivos!            
+            {
+                string escritorio = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                string file = "C:\\Users\\Mario\\Downloads\\borrar.docx";
+
+                Microsoft.Office.Interop.Word.Application appWord = new Microsoft.Office.Interop.Word.Application();
+                wordDocument = appWord.Documents.Open(@file);
+                wordDocument.ExportAsFixedFormat(escritorio + "/" + "mop.pdf", WdExportFormat.wdExportFormatPDF);
+                wordDocument.Close();
+                appWord.Quit();
+            }
+            //TODO verificar archivo existe, si existe no hay error ni se crea de nuevo.
+        }
+
+        public void cortarPDF(string entradaPdf, string salidaPdf)
+        {
+            string inputPdf = @"C:\Users\Mario\Downloads\asd.pdf";
+            string outputPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            string outputPdf = "nombre.pdf";
+            string pageSelection = "1-3,!2";
+            using (PdfReader reader = new PdfReader(inputPdf))
+            {
+                reader.SelectPages(pageSelection);
+
+                using (PdfStamper stamper = new PdfStamper(reader, File.Create(outputPath + "/" + outputPdf)))
+                {
+                    stamper.Close();
+                }
+            }
         }
     }
 }

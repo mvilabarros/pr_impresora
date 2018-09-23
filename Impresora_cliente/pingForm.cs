@@ -9,9 +9,9 @@ using System.Windows.Forms;
 
 namespace Impresora_cliente
 {
-    public partial class pingForm : Form
+    public partial class PingForm : Form
     {
-        public pingForm()
+        public PingForm()
         {
             InitializeComponent();
         }

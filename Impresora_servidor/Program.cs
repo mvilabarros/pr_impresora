@@ -28,6 +28,9 @@ namespace Impresora_servidor
         bool conectado = false;
         StreamReader streamToPrint;
         private Font printFont;
+        string nombreImpresora = "asd";
+        string estadoImpresora = "";
+
 
         List<String> archivos; //guardar documentos en temp, borrar al cerrar servidor
         static bool conectar = false, apagar = false;
@@ -42,7 +45,7 @@ namespace Impresora_servidor
             //seleccionar impresoras
             ManagementObjectSearcher buscar = new ManagementObjectSearcher("SELECT * FROM Win32_Printer");
 
-            string nombreImpresora = "";
+            nombreImpresora = "";
             if (buscar.Get().Count == 0)
             {
                 Console.WriteLine("No hay impresora conectada");
@@ -55,11 +58,13 @@ namespace Impresora_servidor
                     Console.WriteLine(nombreImpresora);
                     if (impresora["WorkOffline"].ToString().ToLower().Equals("true"))
                     {
-                        Console.WriteLine("Impresora offline." + nombreImpresora);
+                        Console.WriteLine("Impresora offline: " + nombreImpresora);
+                        estadoImpresora = "Offline";
                     }
                     else
                     {
-                        Console.WriteLine("Impresora online." + nombreImpresora);
+                        Console.WriteLine("Impresora online: " + nombreImpresora);
+                        estadoImpresora = "Online";
                     }
                 }
             }
@@ -88,8 +93,23 @@ namespace Impresora_servidor
         }
         */
 
+        public void opciones()
+        {
+            PrintDocument pdoc = new PrintDocument();
+
+            pdoc.DefaultPageSettings.PrinterSettings.PrinterName = "";
+            pdoc.DefaultPageSettings.Landscape = true;
+            // pdoc.DefaultPageSettings.PaperSize.Height = 140;
+            // pdoc.DefaultPageSettings.PaperSize.Width = 104;
+            //pdoc.PrinterSettings.PrintRange = PrintRange.SomePages;
+            pdoc.PrinterSettings.FromPage = 2;
+            pdoc.PrinterSettings.ToPage = 4;
+            //llamar imprime(opciones, archivo)
+        }
+
         public bool imprime(string archivo)//encontrar opciones
         {
+         
             try
             {
                 Process p = new Process();
@@ -185,7 +205,7 @@ namespace Impresora_servidor
             s.Listen(5);
             Console.WriteLine("Usando puerto: " + puerto);
             Console.WriteLine("A la espera");
-
+            detectarImpresora();
             while (conectar)
             {
                 Socket cliente = s.Accept();
@@ -210,26 +230,35 @@ namespace Impresora_servidor
             {
                 mensaje = sr.ReadLine();
                 Console.WriteLine(mensaje);
-                Console.WriteLine("Cliente " + ieCliente.Address + "enviando documento: " + mensaje);
-                Console.WriteLine(carpeta + mensaje);
-
-                using (var output = File.Create(carpeta + mensaje)) //TODO stream, UnauthorizedAccessException
+                if (mensaje == "ping")
                 {
-                    //1KB
-                    var buffer = new byte[1024];
-                    int bytesRead;
-                    while ((bytesRead = ns.Read(buffer, 0, buffer.Length)) > 0)
-                    {
-                        output.Write(buffer, 0, bytesRead);
-                    }
+                    Console.WriteLine("Enviando datos al cliente " + ieCliente.Address + " " + nombreImpresora);
+                    sw.WriteLine(nombreImpresora);
+                    sw.WriteLine(estadoImpresora);
+                    sw.Flush();
                 }
-                Console.Write(carpeta);
+                else
+                {
+                    Console.WriteLine(mensaje);
+                    Console.WriteLine("Cliente " + ieCliente.Address + "enviando documento: " + mensaje);
+                    Console.WriteLine(carpeta + mensaje);
 
+                    using (var output = File.Create(carpeta + mensaje)) //TODO stream, UnauthorizedAccessException
+                    {
+                        //1KB
+                        var buffer = new byte[1024];
+                        int bytesRead;
+                        while ((bytesRead = ns.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            output.Write(buffer, 0, bytesRead);
+                        }
+                    }
+                    Console.Write(carpeta);
+                }
             }
             catch (IOException e)
             {
                 Console.WriteLine("Se ha producido un error con el archivo. Error: " + e.Message);
-
             }
             catch (ObjectDisposedException)
             {
@@ -237,8 +266,8 @@ namespace Impresora_servidor
             }
             catch (SocketException)
             {
-                cliente.Close();
-                s.Close();
+               // cliente.Close();
+               // s.Close();
             }
             finally
             {

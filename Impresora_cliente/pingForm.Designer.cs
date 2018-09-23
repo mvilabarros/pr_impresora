@@ -1,6 +1,6 @@
 ﻿namespace Impresora_cliente
 {
-    partial class pingForm
+    partial class PingForm
     {
         /// <summary>
         /// Required designer variable.
@@ -30,8 +30,8 @@
         {
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.txtPuerto = new System.Windows.Forms.TextBox();
+            this.txtIP = new System.Windows.Forms.TextBox();
             this.btnAceptar = new System.Windows.Forms.Button();
             this.btnCancelar = new System.Windows.Forms.Button();
             this.SuspendLayout();
@@ -54,22 +54,23 @@
             this.label2.TabIndex = 1;
             this.label2.Text = "Introduce puerto: ";
             // 
-            // textBox1
+            // txtPuerto
             // 
-            this.textBox1.Location = new System.Drawing.Point(144, 71);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(100, 20);
-            this.textBox1.TabIndex = 2;
+            this.txtPuerto.Location = new System.Drawing.Point(144, 71);
+            this.txtPuerto.Name = "txtPuerto";
+            this.txtPuerto.Size = new System.Drawing.Size(100, 20);
+            this.txtPuerto.TabIndex = 2;
             // 
-            // textBox2
+            // txtIP
             // 
-            this.textBox2.Location = new System.Drawing.Point(144, 30);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(100, 20);
-            this.textBox2.TabIndex = 3;
+            this.txtIP.Location = new System.Drawing.Point(144, 30);
+            this.txtIP.Name = "txtIP";
+            this.txtIP.Size = new System.Drawing.Size(100, 20);
+            this.txtIP.TabIndex = 3;
             // 
             // btnAceptar
             // 
+            this.btnAceptar.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.btnAceptar.Location = new System.Drawing.Point(24, 133);
             this.btnAceptar.Name = "btnAceptar";
             this.btnAceptar.Size = new System.Drawing.Size(75, 23);
@@ -79,6 +80,7 @@
             // 
             // btnCancelar
             // 
+            this.btnCancelar.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnCancelar.Location = new System.Drawing.Point(196, 133);
             this.btnCancelar.Name = "btnCancelar";
             this.btnCancelar.Size = new System.Drawing.Size(75, 23);
@@ -93,8 +95,8 @@
             this.ClientSize = new System.Drawing.Size(296, 177);
             this.Controls.Add(this.btnCancelar);
             this.Controls.Add(this.btnAceptar);
-            this.Controls.Add(this.textBox2);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.txtIP);
+            this.Controls.Add(this.txtPuerto);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Name = "pingForm";
@@ -108,9 +110,9 @@
 
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Button btnAceptar;
         private System.Windows.Forms.Button btnCancelar;
+        public System.Windows.Forms.TextBox txtPuerto;
+        public System.Windows.Forms.TextBox txtIP;
     }
 }
