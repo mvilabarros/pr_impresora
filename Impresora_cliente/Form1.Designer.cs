@@ -43,7 +43,7 @@
             this.lblFin = new System.Windows.Forms.Label();
             this.lblInicio = new System.Windows.Forms.Label();
             this.rbRango = new System.Windows.Forms.RadioButton();
-            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.txtSeleccion = new System.Windows.Forms.TextBox();
             this.rbSeleccion = new System.Windows.Forms.RadioButton();
             this.rbTodo = new System.Windows.Forms.RadioButton();
             this.gbCopias = new System.Windows.Forms.GroupBox();
@@ -95,7 +95,7 @@
             this.btnBuscar.TabIndex = 2;
             this.btnBuscar.Text = "Seleccionar";
             this.btnBuscar.UseVisualStyleBackColor = true;
-            this.btnBuscar.Click += new System.EventHandler(this.btn_buscar_Click);
+            this.btnBuscar.Click += new System.EventHandler(this.btnbuscar_Click);
             // 
             // txtDocumento
             // 
@@ -151,7 +151,7 @@
             this.gbPaginas.Controls.Add(this.lblFin);
             this.gbPaginas.Controls.Add(this.lblInicio);
             this.gbPaginas.Controls.Add(this.rbRango);
-            this.gbPaginas.Controls.Add(this.textBox2);
+            this.gbPaginas.Controls.Add(this.txtSeleccion);
             this.gbPaginas.Controls.Add(this.rbSeleccion);
             this.gbPaginas.Controls.Add(this.rbTodo);
             this.gbPaginas.Location = new System.Drawing.Point(12, 154);
@@ -204,12 +204,12 @@
             this.rbRango.Text = "Rango";
             this.rbRango.UseVisualStyleBackColor = true;
             // 
-            // textBox2
+            // txtSeleccion
             // 
-            this.textBox2.Location = new System.Drawing.Point(90, 92);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(156, 20);
-            this.textBox2.TabIndex = 2;
+            this.txtSeleccion.Location = new System.Drawing.Point(90, 92);
+            this.txtSeleccion.Name = "txtSeleccion";
+            this.txtSeleccion.Size = new System.Drawing.Size(156, 20);
+            this.txtSeleccion.TabIndex = 2;
             // 
             // rbSeleccion
             // 
@@ -413,7 +413,7 @@
         private System.Windows.Forms.GroupBox gbCopias;
         private System.Windows.Forms.Label lblCopias;
         private System.Windows.Forms.ComboBox cbCopias;
-        private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.TextBox txtSeleccion;
         private System.Windows.Forms.RadioButton rbSeleccion;
         private System.Windows.Forms.RadioButton rbTodo;
         private System.Windows.Forms.CheckBox checkIntercalado;

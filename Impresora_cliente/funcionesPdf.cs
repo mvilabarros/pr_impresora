@@ -5,18 +5,16 @@ using iTextSharp.text.pdf;
 
 namespace Impresora_cliente
 {
-
-
     class funcionesPdf
     {
         private Microsoft.Office.Interop.Word.Document wordDocument { get; set; }
 
-        private void wordPdf(string entradaArchivo, string salidaArchivo)
+        public void wordPdf(string entradaArchivo, string salidaArchivo)
         {
             //necesario Office para convertir archivos!            
             {
                 string escritorio = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                string file = "C:\\Users\\Mario\\Downloads\\borrar.docx";
+                string file = entradaArchivo;
 
                 Microsoft.Office.Interop.Word.Application appWord = new Microsoft.Office.Interop.Word.Application();
                 wordDocument = appWord.Documents.Open(@file);
@@ -27,9 +25,9 @@ namespace Impresora_cliente
             //TODO verificar archivo existe, si existe no hay error ni se crea de nuevo.
         }
 
-        private void cortarPDF(string entradaPdf, string salidaPdf)
+        public void cortarPDF(string entradaPdf, string salidaPdf, string paginaSelec)
         {
-            string inputPdf = @"C:\Users\Mario\Downloads\asd.pdf";
+            string inputPdf = entradaPdf;
             string outputPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             string outputPdf = "nombre.pdf";
             string pageSelection = "1-3,!2";
@@ -42,6 +40,13 @@ namespace Impresora_cliente
                     stamper.Close();
                 }
             }
+        }
+
+        public int rangoPdf()
+        {
+
+
+            return 0;
         }
 
     }

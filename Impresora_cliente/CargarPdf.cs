@@ -11,20 +11,19 @@ namespace Impresora_cliente
 {
     public partial class CargarPdf : Form
     {
-        int paginas = 1;
+        int paginas = 0;
 
         public CargarPdf()
         {
             InitializeComponent();
         }
     
-
         private void CargarPdf_Load(object sender, EventArgs e)
         {
             btnMas.Text = char.ConvertFromUtf32(0x2192);
             btnMenos.Text = char.ConvertFromUtf32(0x2190);
             this.MinimumSize = new Size(420, 525);
-            txtPaginas.Text += paginas.ToString();
+            txtPaginas.Text += (paginas +1).ToString();
             MostrarPdf(ruta);
         }
 
@@ -41,14 +40,20 @@ namespace Impresora_cliente
 
         private void btnMenos_Click(object sender, EventArgs e)
         {
-            if(pdfRenderer1.Page > 0)
+            if (pdfRenderer1.Page > 0)
+            {
                 pdfRenderer1.Page -= 1;
+            }
+            txtPaginas.Text = (pdfRenderer1.Page + 1).ToString();
         }
 
         private void btnMas_Click(object sender, EventArgs e)
         {
             if (pdfRenderer1.Page <= paginas)
+            {
                 pdfRenderer1.Page += 1;
+            }
+            txtPaginas.Text = (pdfRenderer1.Page + 1).ToString();
         }
     }
 }

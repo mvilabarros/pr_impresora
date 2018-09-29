@@ -47,23 +47,61 @@ namespace Impresora_cliente
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            //btnPdf.Enabled = false;
             Directory.CreateDirectory(documentosImpresora);
+
+            //            funcionesPdf pdf = new funcionesPdf();
+
+            btnPdf.Enabled = false;
+            btnImprimir.Enabled = false;
+            conexion(ip, puerto, "ping");
+            rbTodo.Checked = true;
+
             for (int i = 1; i <= hojas; i++)
             {
                 string[] num = { i.ToString() };
                 cbCopias.Items.AddRange(num);
                 cbCopias.SelectedIndex = 0;
             }
+
+
+
+
+            if (!con)
+            {
+                lblEstado.Text = "No conectado";
+            }
         }
 
         private void btnImprimir_Click(object sender, EventArgs e) //btnImprimir
         {
+            funcionesPdf pdf = new funcionesPdf();
+
             //conexion(ip, puerto, "imprimir");
 
             //btnPing -> conexion("127.0.0.1", 31416, "ping");
 
             //comprobar impresora + comprobar archivo ->comprobar páginas -> cortar PDF -> mandar pdf nuevo a server + copias, intercalar
+
+            if (rbRango.Checked)
+            {
+                string txt = txtInicio.Text + "-" + txtFin.Text;
+                if (txtInicio.Text != null && txtFin.Text != null)
+                {
+                    pdf.cortarPDF(archivo, archivoCortado, txt);
+                }
+            }
+
+            if (rbSeleccion.Checked)
+            {
+                if (txtSeleccion.Text != null)
+                {
+                    pdf.cortarPDF(archivo, archivoCortado, txtSeleccion.Text);
+                }
+            }
+
+
+
+
         }
 
         private void btnPing_Click(object sender, EventArgs e)
@@ -92,41 +130,6 @@ namespace Impresora_cliente
             }
 
         }
-
-        private void btn_buscar_Click(object sender, EventArgs e)
-        {
-            Stream str = null;
-            OpenFileDialog openFileDialog1 = new OpenFileDialog();
-
-            openFileDialog1.InitialDirectory = "c:\\";
-            openFileDialog1.Filter = "txt (*.txt)|*.txt|Todos (*.*)|*.*";
-            openFileDialog1.FilterIndex = 2;
-            openFileDialog1.RestoreDirectory = true;
-
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    if ((str = openFileDialog1.OpenFile()) != null)
-                    {
-                        using (str)
-                        {
-                            //getExtension
-                            nombreArchivo = Path.GetFileName(openFileDialog1.FileName);
-                            archivo = Path.GetFullPath(openFileDialog1.FileName);
-                            txtDocumento.Text = archivo;
-                            arch = true;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Se ha producido un error con el archivo. Error: " + ex.Message);
-                    arch = false;
-                }
-            }
-        }
-
         private void conexion(string ip, int puerto, string opcion)
         {
             try
@@ -178,14 +181,46 @@ namespace Impresora_cliente
             }
         }
 
-        private void salirToolStripMenuItem_Click(object sender, EventArgs e)
+        private void btnbuscar_Click(object sender, EventArgs e)
         {
-            if (Directory.Exists(documentosImpresora))
+            Stream str = null;
+            OpenFileDialog openFileDialog1 = new OpenFileDialog();
+
+            openFileDialog1.InitialDirectory = "c:\\";
+            openFileDialog1.Filter = "txt (*.txt)|*.txt|Todos (*.*)|*.*";
+            openFileDialog1.FilterIndex = 2;
+            openFileDialog1.RestoreDirectory = true;
+
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                Directory.Delete(documentosImpresora, true);
+                try
+                {
+                    if ((str = openFileDialog1.OpenFile()) != null)
+                    {
+                        using (str)
+                        {
+                            //getExtension
+                            nombreArchivo = Path.GetFileName(openFileDialog1.FileName);
+                            archivo = Path.GetFullPath(openFileDialog1.FileName);
+                            txtDocumento.Text = archivo;
+
+                            arch = true;
+                            btnPdf.Enabled = true;
+                            btnImprimir.Enabled = true;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Se ha producido un error con el archivo. Error: " + ex.Message);
+                    arch = false;
+                }
             }
-            this.Close();
         }
+
+
+
+
 
         private void btnPdf_Click(object sender, EventArgs e)
         {
@@ -199,39 +234,14 @@ namespace Impresora_cliente
             //else no hay archivo seleccionado
         }
 
-        private Microsoft.Office.Interop.Word.Document wordDocument { get; set; }
 
-        private void wordPdf(string entradaArchivo, string salidaArchivo)
+        private void salirToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //necesario Office para convertir archivos!            
+            if (Directory.Exists(documentosImpresora))
             {
-                string escritorio = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                string file = "C:\\Users\\Mario\\Downloads\\borrar.docx";
-
-                Microsoft.Office.Interop.Word.Application appWord = new Microsoft.Office.Interop.Word.Application();
-                wordDocument = appWord.Documents.Open(@file);
-                wordDocument.ExportAsFixedFormat(escritorio + "/" + "mop.pdf", WdExportFormat.wdExportFormatPDF);
-                wordDocument.Close();
-                appWord.Quit();
+                Directory.Delete(documentosImpresora, true);
             }
-            //TODO verificar archivo existe, si existe no hay error ni se crea de nuevo.
-        }
-
-        public void cortarPDF(string entradaPdf, string salidaPdf)
-        {
-            string inputPdf = @"C:\Users\Mario\Downloads\asd.pdf";
-            string outputPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string outputPdf = "nombre.pdf";
-            string pageSelection = "1-3,!2";
-            using (PdfReader reader = new PdfReader(inputPdf))
-            {
-                reader.SelectPages(pageSelection);
-
-                using (PdfStamper stamper = new PdfStamper(reader, File.Create(outputPath + "/" + outputPdf)))
-                {
-                    stamper.Close();
-                }
-            }
+            this.Close();
         }
     }
 }
