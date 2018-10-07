@@ -12,10 +12,10 @@ namespace Impresora_cliente
 {
     public partial class Form1 : Form
     {
-        //TODO pingForm
         //TODO convertir archivo a PDF -> aplicar opciones -> nuevo PDF -> enviar al servidor
-        //TODO verificar archivos, crear carpeta en TEMP, borrar al cerrar cliente
-        //TODO mostrar PDF en otro forms
+        //comprobar impresora + comprobar archivo ->comprobar páginas -> cortar PDF -> mandar pdf nuevo a server + copias, intercalar
+        //TODO verificar archivos
+
 
         static string ip = "127.0.0.1";
         static int puerto = 31416;
@@ -49,10 +49,12 @@ namespace Impresora_cliente
         {
             Directory.CreateDirectory(documentosImpresora);
 
-            //            funcionesPdf pdf = new funcionesPdf();
+            //funcionesPdf pdf = new funcionesPdf();
 
             btnPdf.Enabled = false;
             btnImprimir.Enabled = false;
+            lblIntercalado.Enabled = false;
+
             conexion(ip, puerto, "ping");
             rbTodo.Checked = true;
 
@@ -63,9 +65,6 @@ namespace Impresora_cliente
                 cbCopias.SelectedIndex = 0;
             }
 
-
-
-
             if (!con)
             {
                 lblEstado.Text = "No conectado";
@@ -75,12 +74,7 @@ namespace Impresora_cliente
         private void btnImprimir_Click(object sender, EventArgs e) //btnImprimir
         {
             funcionesPdf pdf = new funcionesPdf();
-
-            //conexion(ip, puerto, "imprimir");
-
             //btnPing -> conexion("127.0.0.1", 31416, "ping");
-
-            //comprobar impresora + comprobar archivo ->comprobar páginas -> cortar PDF -> mandar pdf nuevo a server + copias, intercalar
 
             if (rbRango.Checked)
             {
@@ -88,6 +82,8 @@ namespace Impresora_cliente
                 if (txtInicio.Text != null && txtFin.Text != null)
                 {
                     pdf.cortarPDF(archivo, archivoCortado, txt);
+                    nombreArchivo = Path.GetFileName(archivoCortado);
+                    archivo = Path.GetFullPath(archivoCortado);
                 }
             }
 
@@ -96,12 +92,13 @@ namespace Impresora_cliente
                 if (txtSeleccion.Text != null)
                 {
                     pdf.cortarPDF(archivo, archivoCortado, txtSeleccion.Text);
+                    nombreArchivo = Path.GetFileName(archivoCortado);
+                    archivo = Path.GetFullPath(archivoCortado);
                 }
+
             }
-
-
-
-
+           
+            conexion(ip, puerto, "imprimir");
         }
 
         private void btnPing_Click(object sender, EventArgs e)
@@ -207,6 +204,10 @@ namespace Impresora_cliente
                             arch = true;
                             btnPdf.Enabled = true;
                             btnImprimir.Enabled = true;
+                            lblIntercalado.Enabled = true;
+                            funcionesPdf pdf = new funcionesPdf();
+                            txtInicio.Text = "0";
+                            txtFin.Text = pdf.rangoPdf(archivo).ToString();
                         }
                     }
                 }
@@ -217,10 +218,6 @@ namespace Impresora_cliente
                 }
             }
         }
-
-
-
-
 
         private void btnPdf_Click(object sender, EventArgs e)
         {

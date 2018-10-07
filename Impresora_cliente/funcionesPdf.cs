@@ -42,12 +42,28 @@ namespace Impresora_cliente
             }
         }
 
-        public int rangoPdf()
+        public int rangoPdf(string archivo)
         {
-
-
-            return 0;
+            var pdfDocument = PdfiumViewer.PdfDocument.Load(archivo);
+            return pdfDocument.PageCount; 
         }
 
+
+        public void repetirPdf(string origen, string destino, int repetir)
+        {
+            //
+            for (int i = 0; i < repetir; i++)
+            {
+                var sourceDocumentStream = new FileStream(origen, FileMode.Open);
+                var destinationDocumentStream = new FileStream(destino, FileMode.Create);
+                var pdfConcat = new PdfConcatenate(destinationDocumentStream);
+
+                var pdfReader = new PdfReader(sourceDocumentStream);
+                pdfConcat.AddPages(pdfReader);
+
+                pdfReader.Close();
+                pdfConcat.Close();
+            }
+        }
     }
 }

@@ -17,7 +17,8 @@ namespace Impresora_servidor
     //TODO detectar sistema operativo
     //TODO detectar impresora, enviar estado impresora a cliente
     //TODO con: enviar archivo stream - borrar archivos enviados -> lista archivos
-    //TODO imprimir con/sin color, X páginas, intercalar, repetir X páginas
+    //TODO imprimir con/sin color, intercalar, repetir X páginas
+    
     class Program
     {
         string carpeta = Path.GetTempPath();
@@ -32,7 +33,7 @@ namespace Impresora_servidor
         string estadoImpresora = "";
 
 
-        List<String> archivos; //guardar documentos en temp, borrar al cerrar servidor
+        List<String> archivos; //guardar documentos en temp, borrar al cerrar servidor 
         static bool conectar = false, apagar = false;
         Socket s = null;
 
@@ -93,25 +94,16 @@ namespace Impresora_servidor
         }
         */
 
-        public void opciones()
-        {
-            PrintDocument pdoc = new PrintDocument();
 
-            pdoc.DefaultPageSettings.PrinterSettings.PrinterName = "";
-            pdoc.DefaultPageSettings.Landscape = true;
-            // pdoc.DefaultPageSettings.PaperSize.Height = 140;
-            // pdoc.DefaultPageSettings.PaperSize.Width = 104;
-            //pdoc.PrinterSettings.PrintRange = PrintRange.SomePages;
-            pdoc.PrinterSettings.FromPage = 2;
-            pdoc.PrinterSettings.ToPage = 4;
-            //llamar imprime(opciones, archivo)
-        }
-
-        public bool imprime(string archivo)//encontrar opciones
+        public bool imprime(string archivo)
         {
          
             try
             {
+                PrinterSettings opciones = new PrinterSettings();
+                opciones.PrinterName = nombreImpresora; //
+                opciones.Duplex = Duplex.Default;
+
                 Process p = new Process();
                 // p.StartInfo.UseShellExecute = false;
                 p.StartInfo.CreateNoWindow = true;
