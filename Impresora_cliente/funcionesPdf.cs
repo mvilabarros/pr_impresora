@@ -11,16 +11,35 @@ namespace Impresora_cliente
 
         public void wordPdf(string entradaArchivo, string salidaArchivo)
         {
-            //necesario Office para convertir archivos!            
+            //necesario Office para convertir archivos!         
             {
                 string escritorio = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
                 string file = entradaArchivo;
-
-                Microsoft.Office.Interop.Word.Application appWord = new Microsoft.Office.Interop.Word.Application();
-                wordDocument = appWord.Documents.Open(@file);
-                wordDocument.ExportAsFixedFormat(escritorio + "/" + "mop.pdf", WdExportFormat.wdExportFormatPDF);
-                wordDocument.Close();
-                appWord.Quit();
+                switch (Path.GetExtension(entradaArchivo))
+                {
+                    //Word
+                    case ".doc":
+                    case ".docx":
+                        Microsoft.Office.Interop.Word.Application appWord = new Microsoft.Office.Interop.Word.Application();
+                        wordDocument = appWord.Documents.Open(@file);
+                        wordDocument.ExportAsFixedFormat(escritorio + "/" + "mop.pdf", WdExportFormat.wdExportFormatPDF);
+                        wordDocument.Close();
+                        appWord.Quit();
+                        break;
+                    //Excel
+                    case ".xls":
+                    case ".xlsx":
+                        break;
+                    //PowerPoint
+                    case ".ppt":
+                    case ".pptx":
+                        break;
+                    //Access
+                    case ".accdr":
+                    case ".accdt":
+                        break;
+                }
+              
             }
             //TODO verificar archivo existe, si existe no hay error ni se crea de nuevo.
         }
@@ -63,6 +82,19 @@ namespace Impresora_cliente
 
                 pdfReader.Close();
                 pdfConcat.Close();
+            }
+        }
+
+
+        public bool compruebaArchivo(string archivo)
+        {
+            if (File.Exists(Path.GetFullPath(archivo)))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
     }
