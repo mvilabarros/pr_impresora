@@ -14,7 +14,7 @@ using System.Threading;
 
 namespace Impresora_servidor
 {
-    //TODO detectar sistema operativo
+    //TODO detectar sistema operativo -- rev
     //TODO detectar impresora, enviar estado impresora a cliente
     //TODO con: enviar archivo stream - borrar archivos enviados -> lista archivos
     //TODO imprimir con/sin color, intercalar, repetir X páginas
@@ -71,31 +71,10 @@ namespace Impresora_servidor
             }
         }
 
-        /*
-        public void imprimirOpciones()//añadir variables
-        {
-            PrinterSettings opciones = new PrinterSettings()
-            {
-                FromPage = 1,
-                ToPage = 5,
-                PrinterName = "",
-                Duplex = Duplex.Default, // -1 default, horizontal 3 dos lados-hor, simplex 1 un lado, vertical 2 dos lados vert
-                Copies = 1,
-                PrintRange = PrintRange.Selection,
-
-            };
-
-            PrintDocument documento = new PrintDocument()
-            {
-                PrinterSettings = opciones
-            };
-
-            documento.Print();
-        }
-        */
+   
 
 
-        public bool imprime(string archivo)
+        public bool imprime(string archivo)//añadir impresora, copias, duplex
         {
          
             try
@@ -103,7 +82,7 @@ namespace Impresora_servidor
                 PrinterSettings opciones = new PrinterSettings();
                 opciones.PrinterName = nombreImpresora; //
                 opciones.Duplex = Duplex.Default;
-
+                opciones.Copies = 1;
                 Process p = new Process();
                 // p.StartInfo.UseShellExecute = false;
                 p.StartInfo.CreateNoWindow = true;
@@ -120,21 +99,33 @@ namespace Impresora_servidor
                 p.Close();
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }
         }
 
-        public bool imprimePDF(string impresora, string papel, string archivo, int copias)
+        public bool imprimePDF(string impresora, string papel, string archivo, int copias, Duplex duplex)
         {
             try
             {
+
+                /*
+                Default	   -1	
+
+                Horizontal	3	dos lados horinzontal
+
+                Simplex	    1	un lado
+
+                Vertical	2	dos lados vertical
+                 */
+
                 // Propiedades impresora
                 var printerSettings = new PrinterSettings
                 {
                     PrinterName = impresora,
                     Copies = (short)copias,
+                    Duplex = duplex
                 };
 
                 // Propiedades página, tamaño página
@@ -171,7 +162,10 @@ namespace Impresora_servidor
             }
         }
 
-        //TODO limite puerto
+
+
+
+        //TODO limite puerto 0 inv 1 val
         public void iniciaServidorImpresora()
         {
             while (!conectado)
@@ -204,6 +198,7 @@ namespace Impresora_servidor
                 Thread hilo = new Thread(hiloCliente);
                 hilo.IsBackground = true;
                 hilo.Start(cliente);
+                //comprobar SO 
                 //imprimePDF(printerG, "PaperKind.A4", archivo, 1);
 
             }
@@ -299,6 +294,72 @@ namespace Impresora_servidor
              * 
              */ 
         }
+
+        //Return 1 usa lib PDF, 0 C# lib 
+        private int infOS()
+        {
+            OperatingSystem os = Environment.OSVersion;
+            Version vs = os.Version;
+
+            int valor = 0;
+
+            if (os.Platform == PlatformID.Win32Windows)
+            {
+                switch (vs.Minor)
+                {
+                    case 0:
+                        valor = 0;
+                        break;
+                    case 10:
+                        if (vs.Revision.ToString() == "2222A")
+                            valor = 0;
+                        else
+                            valor = 0;
+                        break;
+                    case 90:
+                        valor = 0;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else if (os.Platform == PlatformID.Win32NT)
+            {
+                switch (vs.Major)
+                {
+                    case 3:
+                        valor = 0;
+                        break;
+                    case 4:
+                        valor = 0;
+                        break;
+                    case 5:
+                        if (vs.Minor == 0)
+                            valor = 0;
+                        else
+                            valor = 0;
+                        break;
+                    case 6:
+                        if (vs.Minor == 0)
+                            valor = 1;
+                        else if (vs.Minor == 1)
+                            valor = 1; //W7
+                        else if (vs.Minor == 2)
+                            valor = 1;
+                        else
+                            valor = 1;
+                        break;
+                    case 10:
+                        valor = 1;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return valor;
+        }
+
+
 
 
         static void Main(string[] args)
