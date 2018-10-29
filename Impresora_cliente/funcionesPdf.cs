@@ -44,21 +44,22 @@ namespace Impresora_cliente
             //TODO verificar archivo existe, si existe no hay error ni se crea de nuevo.
         }
 
-        public void cortarPDF(string entradaPdf, string salidaPdf, string paginaSelec)
+        public string cortarPDF(string entradaPdf, string salidaPdf, string carpeta, string paginaSelec)
         {
             string inputPdf = entradaPdf;
-            string outputPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string outputPdf = "nombre.pdf";
-            string pageSelection = "1-3,!2";
+            string outputPath = carpeta; //Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            string outputPdf = Path.GetFileNameWithoutExtension(entradaPdf)+ "_cortado" + Path.GetExtension(entradaPdf);
+            //string pageSelection = "1-3,!2";
             using (PdfReader reader = new PdfReader(inputPdf))
             {
-                reader.SelectPages(pageSelection);
+                reader.SelectPages(paginaSelec);
 
-                using (PdfStamper stamper = new PdfStamper(reader, File.Create(outputPath + "/" + outputPdf)))
+                using (PdfStamper stamper = new PdfStamper(reader, File.Create(outputPath + "\\" + outputPdf)))
                 {
                     stamper.Close();
-                }
+                }                  
             }
+            return outputPath + "\\" + outputPdf;
         }
 
         public int rangoPdf(string archivo)
@@ -70,7 +71,6 @@ namespace Impresora_cliente
 
         public void repetirPdf(string origen, string destino, int repetir)
         {
-            //
             for (int i = 0; i < repetir; i++)
             {
                 var sourceDocumentStream = new FileStream(origen, FileMode.Open);

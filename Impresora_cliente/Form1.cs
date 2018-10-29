@@ -13,9 +13,10 @@ namespace Impresora_cliente
     public partial class Form1 : Form
     {
         //TODO convertir archivo a PDF -> aplicar opciones -> nuevo PDF -> enviar al servidor
-        //comprobar impresora + comprobar archivo ->comprobar páginas -> cortar PDF -> mandar pdf nuevo a server + copias, intercalar
-        //TODO verificar archivos
 
+        //comprobar impresora + comprobar archivo ->comprobar páginas -> cortar PDF -> mandar pdf nuevo a server + copias, intercalar
+        //TODO verificar archivos + verificar si archivo es pdf o no -> wordpdf
+        //TODO si kill -> borrar carpeta si existe y crearla de nuevo
 
         static string ip = "127.0.0.1";
         static int puerto = 31416;
@@ -75,15 +76,14 @@ namespace Impresora_cliente
         {
             funcionesPdf pdf = new funcionesPdf();
             //btnPing -> conexion("127.0.0.1", 31416, "ping");
-
             if (rbRango.Checked)
             {
                 string txt = txtInicio.Text + "-" + txtFin.Text;
                 if (txtInicio.Text != null && txtFin.Text != null)
                 {
-                    pdf.cortarPDF(archivo, archivoCortado, txt);
+                    archivoCortado = pdf.cortarPDF(archivo, archivoCortado, documentosImpresora, txt);
                     nombreArchivo = Path.GetFileName(archivoCortado);
-                    archivo = Path.GetFullPath(archivoCortado);
+                    archivo = archivoCortado;
                 }
             }
 
@@ -91,14 +91,14 @@ namespace Impresora_cliente
             {
                 if (txtSeleccion.Text != null)
                 {
-                    pdf.cortarPDF(archivo, archivoCortado, txtSeleccion.Text);
+                    archivoCortado = pdf.cortarPDF(archivo, archivoCortado, documentosImpresora, txtSeleccion.Text);
                     nombreArchivo = Path.GetFileName(archivoCortado);
-                    archivo = Path.GetFullPath(archivoCortado);
+                    archivo = archivoCortado;
                 }
 
             }
-           
-            conexion(ip, puerto, "imprimir");
+            Console.WriteLine("imprimir " + Path.GetFullPath(archivo));
+            conexion(ip, puerto, "imprimir"); //añadir parametros conexion
         }
 
         private void btnPing_Click(object sender, EventArgs e)
@@ -143,9 +143,18 @@ namespace Impresora_cliente
                     if (opcion == "imprimir")
                     {
                         sw.WriteLine(nombreArchivo);
-                        sw.Flush();
+
+                        Console.WriteLine("NOMBRE ARCHIVO:" + nombreArchivo + "~~" + archivo);
                         servidor.SendFile(archivo);
-                        lbArchivo.Text += "Enviando archivo...";
+
+                        lbArchivo.Text = "Enviando archivo...";
+
+                        sw.WriteLine(cbCopias.Text);
+                        lbArchivo.Text += "Enviando copias: " + cbCopias.Text;
+
+                        sw.WriteLine(checkIntercalado.Checked);
+                        lbArchivo.Text += "Enviando Duplex: " + checkIntercalado.Checked.ToString();
+                        sw.Flush();
                     }
                     else
                     {
@@ -162,7 +171,7 @@ namespace Impresora_cliente
             }
             catch (SocketException ex)
             {
-                lbArchivo.Text = String.Format("Error de conexión: {0}" + Environment.NewLine + "Código de error: {1}({2})", ex.Message, (SocketError)ex.ErrorCode, ex.ErrorCode);
+                lbArchivo.Text = String.Format("Error de conexión CLIENTE: {0}" + Environment.NewLine + "Código de error: {1}({2})", ex.Message, (SocketError)ex.ErrorCode, ex.ErrorCode);
                 con = false;
             }
             catch (IOException e)
@@ -184,8 +193,8 @@ namespace Impresora_cliente
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
 
             openFileDialog1.InitialDirectory = "c:\\";
-            openFileDialog1.Filter = "txt (*.txt)|*.txt|Todos (*.*)|*.*";
-            openFileDialog1.FilterIndex = 2;
+            openFileDialog1.Filter = "pdf (*.pdf)|*.pdf|txt (*.txt)|*.txt|Todos (*.*)|*.*";
+            openFileDialog1.FilterIndex = 1;
             openFileDialog1.RestoreDirectory = true;
 
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
@@ -206,7 +215,7 @@ namespace Impresora_cliente
                             btnImprimir.Enabled = true;
                             lblIntercalado.Enabled = true;
                             funcionesPdf pdf = new funcionesPdf();
-                            txtInicio.Text = "0";
+                            txtInicio.Text = "1";
                             txtFin.Text = pdf.rangoPdf(archivo).ToString();
                         }
                     }
@@ -240,5 +249,8 @@ namespace Impresora_cliente
             }
             this.Close();
         }
+
+
+
     }
 }

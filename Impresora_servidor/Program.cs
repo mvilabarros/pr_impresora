@@ -21,22 +21,20 @@ namespace Impresora_servidor
     
     class Program
     {
-        string carpeta = Path.GetTempPath();
-        string escritorio = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-        string archivo;
         int puerto = 31416;
         IPEndPoint ie;
         bool conectado = false;
-        StreamReader streamToPrint;
-        private Font printFont;
-        string nombreImpresora = "asd";
+        string nombreImpresora = "";
         string estadoImpresora = "";
-
-
-        List<String> archivos; //guardar documentos en temp, borrar al cerrar servidor 
+        //
+        static string dataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        static string docImpresora = Path.Combine(dataDir, "docImpresora");
+        //
         static bool conectar = false, apagar = false;
         Socket s = null;
-
+        //
+        static int sistemaValido = 0;
+        //
         public void detectarImpresora()
         {
             //managementScope
@@ -71,18 +69,24 @@ namespace Impresora_servidor
             }
         }
 
-   
+        /*
+        Default	   -1	
 
+        Horizontal	3	dos lados horinzontal
 
-        public bool imprime(string archivo)//añadir impresora, copias, duplex
+        Simplex	    1	un lado
+
+        Vertical	2	dos lados vertical
+         */
+
+        public bool imprime(string impresora, string archivo, short copias, Duplex duplex)
         {
-         
             try
             {
                 PrinterSettings opciones = new PrinterSettings();
                 opciones.PrinterName = nombreImpresora; //
-                opciones.Duplex = Duplex.Default;
-                opciones.Copies = 1;
+                opciones.Duplex = duplex;
+                opciones.Copies = copias;
                 Process p = new Process();
                 // p.StartInfo.UseShellExecute = false;
                 p.StartInfo.CreateNoWindow = true;
@@ -109,17 +113,6 @@ namespace Impresora_servidor
         {
             try
             {
-
-                /*
-                Default	   -1	
-
-                Horizontal	3	dos lados horinzontal
-
-                Simplex	    1	un lado
-
-                Vertical	2	dos lados vertical
-                 */
-
                 // Propiedades impresora
                 var printerSettings = new PrinterSettings
                 {
@@ -162,9 +155,6 @@ namespace Impresora_servidor
             }
         }
 
-
-
-
         //TODO limite puerto 0 inv 1 val
         public void iniciaServidorImpresora()
         {
@@ -198,9 +188,6 @@ namespace Impresora_servidor
                 Thread hilo = new Thread(hiloCliente);
                 hilo.IsBackground = true;
                 hilo.Start(cliente);
-                //comprobar SO 
-                //imprimePDF(printerG, "PaperKind.A4", archivo, 1);
-
             }
         }
         public void hiloCliente(object socket)
@@ -212,7 +199,7 @@ namespace Impresora_servidor
             NetworkStream ns = new NetworkStream(cliente);
             StreamReader sr = new StreamReader(ns);
             StreamWriter sw = new StreamWriter(ns);
-            string mensaje;
+            string mensaje, valorDuplex, numCopias;
             try
             {
                 mensaje = sr.ReadLine();
@@ -228,24 +215,47 @@ namespace Impresora_servidor
                 {
                     Console.WriteLine(mensaje);
                     Console.WriteLine("Cliente " + ieCliente.Address + "enviando documento: " + mensaje);
-                    Console.WriteLine(carpeta + mensaje);
-
-                    using (var output = File.Create(carpeta + mensaje)) //TODO stream, UnauthorizedAccessException
+                    //Comprobar si archivo existe en la carpeta
+                    //if true {} else { crear archivo }
+                    if (!comprobarArchivo(mensaje)) //borrar si archivo existe
                     {
-                        //1KB
-                        var buffer = new byte[1024];
-                        int bytesRead;
-                        while ((bytesRead = ns.Read(buffer, 0, buffer.Length)) > 0)
+                        using (var output = File.Create(docImpresora +"\\" + mensaje)) //TODO stream, UnauthorizedAccessException
                         {
-                            output.Write(buffer, 0, bytesRead);
+                            //1KB
+                            var buffer = new byte[1024];
+                            int bytesRead;
+                            while ((bytesRead = ns.Read(buffer, 0, buffer.Length)) > 0)
+                            {
+                                output.Write(buffer, 0, bytesRead);
+                            }
                         }
+
+                        numCopias = sr.ReadLine();
+                        valorDuplex = sr.ReadLine();
+
+                        if (sistemaValido == 1)
+                        {
+                            //1 = lib pdf
+                            //imprimePDF(nombreImpresora, "PaperKind.A4", archivo, 1, Duplex.Simplex);
+                            Console.WriteLine("valor 1: " + "copias: " + numCopias + " duplex: " + valorDuplex);
+                        }
+                        else
+                        {
+                            //0 = lib c#
+                            //imprime(nombreImpresora, archivo, 1, Duplex.Simplex);
+                            Console.WriteLine("valor 0:" + numCopias + " " + valorDuplex);
+                        }
+                        
                     }
-                    Console.Write(carpeta);
+                    else
+                    {
+                        Console.Write("Archivo ya existe!");
+                    }
                 }
             }
             catch (IOException e)
             {
-                Console.WriteLine("Se ha producido un error con el archivo. Error: " + e.Message);
+                Console.WriteLine("Se ha producido un error con el archivo SERVIDOR. Error: " + e.Message);
             }
             catch (ObjectDisposedException)
             {
@@ -262,6 +272,7 @@ namespace Impresora_servidor
                 sr.Close();
                 ns.Close();
                 cliente.Close();
+                Console.WriteLine("Conexión cerrada");
             }
         }
 
@@ -359,12 +370,35 @@ namespace Impresora_servidor
             return valor;
         }
 
+        private void carpetaDoc()
+        {
+            if (Directory.Exists(docImpresora))
+            {
+                //Borra datos previos 
+                Directory.Delete(docImpresora, true);
+                Directory.CreateDirectory(docImpresora);
+            }else
+            {
+                Directory.CreateDirectory(docImpresora);
+            }
+        }
 
-
+        private bool comprobarArchivo(string archivo)
+        {
+            if(File.Exists(docImpresora +"//"+archivo)) { 
+                    return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
         static void Main(string[] args)
         {
             Program imp = new Program();
+            imp.carpetaDoc();
+            sistemaValido = imp.infOS();
             imp.iniciaServidorImpresora();
             Console.ReadLine();
         }
