@@ -203,7 +203,7 @@ namespace Impresora_servidor
             try
             {
                 mensaje = sr.ReadLine();
-                Console.WriteLine(mensaje);
+             
                 if (mensaje == "ping")
                 {
                     Console.WriteLine("Enviando datos al cliente " + ieCliente.Address + " " + nombreImpresora);
@@ -215,11 +215,30 @@ namespace Impresora_servidor
                 {
                     Console.WriteLine(mensaje);
                     Console.WriteLine("Cliente " + ieCliente.Address + "enviando documento: " + mensaje);
-                    //Comprobar si archivo existe en la carpeta
-                    //if true {} else { crear archivo }
-                    if (!comprobarArchivo(mensaje)) //borrar si archivo existe
+                                   
+                   
+                    if (!comprobarArchivo(mensaje)) //borrar si archivo existe y permitir añadir nuevo
                     {
-                        using (var output = File.Create(docImpresora +"\\" + mensaje)) //TODO stream, UnauthorizedAccessException
+                        
+                        if (sistemaValido == 1)
+                        {
+                            numCopias = sr.ReadLine();
+                            valorDuplex = sr.ReadLine();
+
+                            Console.WriteLine(mensaje + " " + numCopias + " " + valorDuplex + " ");
+
+                            //1 = lib pdf
+                            //imprimePDF(nombreImpresora, "PaperKind.A4", archivo, 1, Duplex.Simplex);
+
+                        }
+                        else
+                        {
+                            //0 = lib c#
+                            //imprime(nombreImpresora, archivo, 1, Duplex.Simplex);
+                        }
+
+                        //TODO arreglar
+                        using (var output = File.Create(docImpresora + "\\" + mensaje)) //TODO stream, UnauthorizedAccessException
                         {
                             //1KB
                             var buffer = new byte[1024];
@@ -229,23 +248,8 @@ namespace Impresora_servidor
                                 output.Write(buffer, 0, bytesRead);
                             }
                         }
+                        //
 
-                        numCopias = sr.ReadLine();
-                        valorDuplex = sr.ReadLine();
-
-                        if (sistemaValido == 1)
-                        {
-                            //1 = lib pdf
-                            //imprimePDF(nombreImpresora, "PaperKind.A4", archivo, 1, Duplex.Simplex);
-                            Console.WriteLine("valor 1: " + "copias: " + numCopias + " duplex: " + valorDuplex);
-                        }
-                        else
-                        {
-                            //0 = lib c#
-                            //imprime(nombreImpresora, archivo, 1, Duplex.Simplex);
-                            Console.WriteLine("valor 0:" + numCopias + " " + valorDuplex);
-                        }
-                        
                     }
                     else
                     {

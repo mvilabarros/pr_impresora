@@ -140,22 +140,26 @@ namespace Impresora_cliente
 
                 if (servidor.Available == 0)
                 {
+                    //TODO arreglar
                     if (opcion == "imprimir")
                     {
                         sw.WriteLine(nombreArchivo);
+                        //sw.Flush();
+
+                        sw.WriteLine(cbCopias.Text);
+                        //sw.Flush();
+                        lbArchivo.Text += " Enviando copias: " + cbCopias.Text;
+
+                        sw.WriteLine(checkIntercalado.Checked.ToString());
+                        lbArchivo.Text += "Enviando Duplex: " + checkIntercalado.Checked.ToString();
+                        sw.Flush();
 
                         Console.WriteLine("NOMBRE ARCHIVO:" + nombreArchivo + "~~" + archivo);
                         servidor.SendFile(archivo);
-
                         lbArchivo.Text = "Enviando archivo...";
-
-                        sw.WriteLine(cbCopias.Text);
-                        lbArchivo.Text += "Enviando copias: " + cbCopias.Text;
-
-                        sw.WriteLine(checkIntercalado.Checked);
-                        lbArchivo.Text += "Enviando Duplex: " + checkIntercalado.Checked.ToString();
-                        sw.Flush();
+                        //sw.Flush();
                     }
+                    //
                     else
                     {
                         sw.WriteLine("ping");
