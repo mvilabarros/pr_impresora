@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CargarPdf));
             this.pdfRenderer1 = new PdfiumViewer.PdfRenderer();
             this.btnMas = new System.Windows.Forms.Button();
             this.btnMenos = new System.Windows.Forms.Button();
@@ -86,8 +87,9 @@
             this.Controls.Add(this.btnMenos);
             this.Controls.Add(this.btnMas);
             this.Controls.Add(this.pdfRenderer1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "CargarPdf";
-            this.Text = "CargarPdf";
+            this.Text = "PDF";
             this.Load += new System.EventHandler(this.CargarPdf_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

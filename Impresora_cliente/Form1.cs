@@ -50,13 +50,11 @@ namespace Impresora_cliente
         {
             Directory.CreateDirectory(documentosImpresora);
 
-            //funcionesPdf pdf = new funcionesPdf();
-
             btnPdf.Enabled = false;
             btnImprimir.Enabled = false;
             lblIntercalado.Enabled = false;
 
-            conexion(ip, puerto, "ping");
+            //conexion(ip, puerto, "ping");
             rbTodo.Checked = true;
 
             for (int i = 1; i <= hojas; i++)
@@ -74,7 +72,9 @@ namespace Impresora_cliente
 
         private void btnImprimir_Click(object sender, EventArgs e) //btnImprimir
         {
+
             funcionesPdf pdf = new funcionesPdf();
+
             //btnPing -> conexion("127.0.0.1", 31416, "ping");
             if (rbRango.Checked)
             {
@@ -97,21 +97,13 @@ namespace Impresora_cliente
                 }
 
             }
-            Console.WriteLine("imprimir " + Path.GetFullPath(archivo));
             conexion(ip, puerto, "imprimir"); //añadir parametros conexion
+
+            // Console.WriteLine("imprimir " + Path.GetFullPath(archivo));
         }
 
         private void btnPing_Click(object sender, EventArgs e)
         {
-            //lblNombre
-            //lblEstado
-            /*
-             * if ping correcto
-             *      lblNombre.Text ++
-             *      lblEstado.Text ++
-             *  else
-             *      lbl no hay datos disponibles
-             */
             PingForm ping = new PingForm();
             DialogResult dia;
             dia = ping.ShowDialog();
@@ -125,8 +117,8 @@ namespace Impresora_cliente
                     con = false;
                     break;
             }
-
         }
+
         private void conexion(string ip, int puerto, string opcion)
         {
             try
@@ -141,13 +133,21 @@ namespace Impresora_cliente
                 if (servidor.Available == 0)
                 {
                     //TODO arreglar
+                    sw.WriteLine(nombreArchivo);
+                    sw.Flush();
+                    servidor.SendFile(archivo);
+                    lbArchivo.Text += "Enviando archivo...";
+
                     if (opcion == "imprimir")
                     {
+                        //sw.WriteLine(nombreArchivo +"-"+ cbCopias.Text + "-" + checkIntercalado.Checked.ToString());
                         sw.WriteLine(nombreArchivo);
-                        //sw.Flush();
+                        sw.Flush();
+                        servidor.SendFile(archivo);
+                        lbArchivo.Text += "Enviando archivo...";
 
                         sw.WriteLine(cbCopias.Text);
-                        //sw.Flush();
+                        sw.Flush();
                         lbArchivo.Text += " Enviando copias: " + cbCopias.Text;
 
                         sw.WriteLine(checkIntercalado.Checked.ToString());
@@ -155,9 +155,7 @@ namespace Impresora_cliente
                         sw.Flush();
 
                         Console.WriteLine("NOMBRE ARCHIVO:" + nombreArchivo + "~~" + archivo);
-                        servidor.SendFile(archivo);
-                        lbArchivo.Text = "Enviando archivo...";
-                        //sw.Flush();
+
                     }
                     //
                     else
@@ -170,6 +168,7 @@ namespace Impresora_cliente
                         lblEstado.Text += estadoImpresora;
                         con = true;
                     }
+
                 }
                 servidor.Close();
             }
@@ -188,7 +187,14 @@ namespace Impresora_cliente
                 if (sw != null) sw.Close();
                 if (sr != null) sr.Close();
                 if (ns != null) ns.Close();
+                servidor.Shutdown(SocketShutdown.Both);
+                servidor.Close();
             }
+        }
+
+        private void acercadeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
         }
 
         private void btnbuscar_Click(object sender, EventArgs e)
@@ -253,8 +259,5 @@ namespace Impresora_cliente
             }
             this.Close();
         }
-
-
-
     }
 }

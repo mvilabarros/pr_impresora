@@ -36,7 +36,6 @@
             this.lblNombre = new System.Windows.Forms.Label();
             this.lblEstado = new System.Windows.Forms.Label();
             this.gbImpresora = new System.Windows.Forms.GroupBox();
-            this.btnPing = new System.Windows.Forms.Button();
             this.gbPaginas = new System.Windows.Forms.GroupBox();
             this.txtFin = new System.Windows.Forms.TextBox();
             this.txtInicio = new System.Windows.Forms.TextBox();
@@ -54,8 +53,6 @@
             this.menu = new System.Windows.Forms.MenuStrip();
             this.archivoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator = new System.Windows.Forms.ToolStripSeparator();
-            this.guardarToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.salirToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.herramientasToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.opcionesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -124,7 +121,6 @@
             // 
             // gbImpresora
             // 
-            this.gbImpresora.Controls.Add(this.btnPing);
             this.gbImpresora.Controls.Add(this.lblNombre);
             this.gbImpresora.Controls.Add(this.lblEstado);
             this.gbImpresora.Location = new System.Drawing.Point(12, 39);
@@ -133,16 +129,6 @@
             this.gbImpresora.TabIndex = 8;
             this.gbImpresora.TabStop = false;
             this.gbImpresora.Text = "Impresora";
-            // 
-            // btnPing
-            // 
-            this.btnPing.Location = new System.Drawing.Point(349, 66);
-            this.btnPing.Name = "btnPing";
-            this.btnPing.Size = new System.Drawing.Size(75, 23);
-            this.btnPing.TabIndex = 8;
-            this.btnPing.Text = "Comprobar";
-            this.btnPing.UseVisualStyleBackColor = true;
-            this.btnPing.Click += new System.EventHandler(this.btnPing_Click);
             // 
             // gbPaginas
             // 
@@ -296,8 +282,6 @@
             // 
             this.archivoToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripSeparator,
-            this.guardarToolStripMenuItem,
-            this.toolStripSeparator1,
             this.salirToolStripMenuItem});
             this.archivoToolStripMenuItem.Name = "archivoToolStripMenuItem";
             this.archivoToolStripMenuItem.Size = new System.Drawing.Size(60, 20);
@@ -306,26 +290,12 @@
             // toolStripSeparator
             // 
             this.toolStripSeparator.Name = "toolStripSeparator";
-            this.toolStripSeparator.Size = new System.Drawing.Size(153, 6);
-            // 
-            // guardarToolStripMenuItem
-            // 
-            this.guardarToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("guardarToolStripMenuItem.Image")));
-            this.guardarToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.guardarToolStripMenuItem.Name = "guardarToolStripMenuItem";
-            this.guardarToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.guardarToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
-            this.guardarToolStripMenuItem.Text = "&Guardar";
-            // 
-            // toolStripSeparator1
-            // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(153, 6);
+            this.toolStripSeparator.Size = new System.Drawing.Size(149, 6);
             // 
             // salirToolStripMenuItem
             // 
             this.salirToolStripMenuItem.Name = "salirToolStripMenuItem";
-            this.salirToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
+            this.salirToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.salirToolStripMenuItem.Text = "&Salir";
             this.salirToolStripMenuItem.Click += new System.EventHandler(this.salirToolStripMenuItem_Click);
             // 
@@ -340,8 +310,9 @@
             // opcionesToolStripMenuItem
             // 
             this.opcionesToolStripMenuItem.Name = "opcionesToolStripMenuItem";
-            this.opcionesToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.opcionesToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.opcionesToolStripMenuItem.Text = "&Opciones";
+            this.opcionesToolStripMenuItem.Click += new System.EventHandler(this.btnPing_Click);
             // 
             // ayudaToolStripMenuItem
             // 
@@ -354,8 +325,9 @@
             // acercadeToolStripMenuItem
             // 
             this.acercadeToolStripMenuItem.Name = "acercadeToolStripMenuItem";
-            this.acercadeToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+            this.acercadeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.acercadeToolStripMenuItem.Text = "&Acerca de...";
+            this.acercadeToolStripMenuItem.Click += new System.EventHandler(this.acercadeToolStripMenuItem_Click);
             // 
             // btnPdf
             // 
@@ -382,9 +354,10 @@
             this.Controls.Add(this.lbArchivo);
             this.Controls.Add(this.btnImprimir);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "Cliente IMP";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.gbImpresora.ResumeLayout(false);
             this.gbImpresora.PerformLayout();
@@ -408,7 +381,6 @@
         private System.Windows.Forms.Label lblNombre;
         private System.Windows.Forms.Label lblEstado;
         private System.Windows.Forms.GroupBox gbImpresora;
-        private System.Windows.Forms.Button btnPing;
         private System.Windows.Forms.GroupBox gbPaginas;
         private System.Windows.Forms.GroupBox gbCopias;
         private System.Windows.Forms.Label lblCopias;
@@ -421,8 +393,6 @@
         private System.Windows.Forms.MenuStrip menu;
         private System.Windows.Forms.ToolStripMenuItem archivoToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator;
-        private System.Windows.Forms.ToolStripMenuItem guardarToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem salirToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem herramientasToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem opcionesToolStripMenuItem;

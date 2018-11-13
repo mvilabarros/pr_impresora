@@ -11,6 +11,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Configuration;
+using System.Printing;
 
 namespace Impresora_servidor
 {
@@ -18,7 +20,7 @@ namespace Impresora_servidor
     //TODO detectar impresora, enviar estado impresora a cliente
     //TODO con: enviar archivo stream - borrar archivos enviados -> lista archivos
     //TODO imprimir con/sin color, intercalar, repetir X páginas
-    
+
     class Program
     {
         int puerto = 31416;
@@ -34,6 +36,10 @@ namespace Impresora_servidor
         Socket s = null;
         //
         static int sistemaValido = 0;
+        //
+        static System.Threading.Timer timer;
+        //
+        static string estadoActualImpresora;
         //
         public void detectarImpresora()
         {
@@ -51,7 +57,7 @@ namespace Impresora_servidor
             }
             else
             {
-                foreach (ManagementObject impresora in buscar.Get())
+                foreach (ManagementBaseObject impresora in buscar.Get())
                 {
                     nombreImpresora = impresora["Name"].ToString().ToLower();
                     Console.WriteLine(nombreImpresora);
@@ -109,7 +115,7 @@ namespace Impresora_servidor
             }
         }
 
-        public bool imprimePDF(string impresora, string papel, string archivo, int copias, Duplex duplex)
+        public bool imprimePDF(string impresora, string archivo, int copias, Duplex duplex)
         {
             try
             {
@@ -122,6 +128,7 @@ namespace Impresora_servidor
                 };
 
                 // Propiedades página, tamaño página
+                /*
                 var pageSettings = new PageSettings(printerSettings)
                 {
                     Margins = new Margins(0, 0, 0, 0),
@@ -134,6 +141,7 @@ namespace Impresora_servidor
                         break;
                     }
                 }
+                */
 
                 // Imprimir PDF
                 using (var document = PdfDocument.Load(archivo))
@@ -141,7 +149,7 @@ namespace Impresora_servidor
                     using (var printDocument = document.CreatePrintDocument())
                     {
                         printDocument.PrinterSettings = printerSettings;
-                        printDocument.DefaultPageSettings = pageSettings;
+                        //printDocument.DefaultPageSettings = pageSettings;
                         printDocument.PrintController = new StandardPrintController();
                         printDocument.Print();
                     }
@@ -154,6 +162,94 @@ namespace Impresora_servidor
                 return false;
             }
         }
+
+        public string impCheck()
+        {
+            estadoActualImpresora = "";
+            LocalPrintServer printServer = new LocalPrintServer();
+            PrintQueueCollection printQueues = printServer.GetPrintQueues();
+            foreach (PrintQueue pq in printQueues)
+            {
+                pq.Refresh();
+                PrintJobInfoCollection pCollection = pq.GetPrintJobInfoCollection();
+                foreach (PrintSystemJobInfo trabajo in pCollection)
+                {
+                    trabajo.Refresh();
+                    if (Trabajos(trabajo))
+                    {
+                        timer.Change(Timeout.Infinite, Timeout.Infinite);
+                    }
+                }
+            }
+            return estadoActualImpresora;
+        }
+
+        private bool Trabajos(PrintSystemJobInfo trabajo)
+        {
+            if (((trabajo.JobStatus & PrintJobStatus.Completed) == PrintJobStatus.Completed)
+                ||
+                ((trabajo.JobStatus & PrintJobStatus.Printed) == PrintJobStatus.Printed))
+            {
+                Console.WriteLine("Trabajo terminado.");
+                estadoActualImpresora = "Trabajo terminado.";
+
+                return true;
+            }
+            else if (((trabajo.JobStatus & PrintJobStatus.Deleted) == PrintJobStatus.Deleted)
+                 ||
+                ((trabajo.JobStatus & PrintJobStatus.Deleting) == PrintJobStatus.Deleting))
+            {
+                Console.WriteLine("Impresión borrada.");
+                estadoActualImpresora = "Impresión borrada.";
+
+                return true;
+            }
+            else if ((trabajo.JobStatus & PrintJobStatus.Error) == PrintJobStatus.Error)
+            {
+                Console.WriteLine("Error en la impresión.");
+                estadoActualImpresora = "Error en la impresión.";
+
+                return true;
+            }
+            else if ((trabajo.JobStatus & PrintJobStatus.Offline) == PrintJobStatus.Offline)
+            {
+                Console.WriteLine("Impresora offline");
+                estadoActualImpresora = "Impresora offline.";
+
+                return true;
+            }
+            else if ((trabajo.JobStatus & PrintJobStatus.PaperOut) == PrintJobStatus.PaperOut)
+            {
+                Console.WriteLine("Falta papel.");
+                estadoActualImpresora = "Falta papel.";
+
+                return false;
+            }
+            else if ((trabajo.JobStatus & PrintJobStatus.Printing) == PrintJobStatus.Printing)
+            {
+                Console.WriteLine("Imprimiendo documento.");
+                estadoActualImpresora = "Imprimiendo documento.";
+
+                return false;
+            }
+
+            else if ((trabajo.JobStatus & PrintJobStatus.UserIntervention) == PrintJobStatus.UserIntervention)
+            {
+                Console.WriteLine("La impresora necesita intervención.");
+                estadoActualImpresora = "La impresora necesita intervención.";
+
+                return false;
+            }
+            else
+            {
+                Console.WriteLine("~");
+                estadoActualImpresora = ".";
+
+                return true;
+            }
+        }
+
+
 
         //TODO limite puerto 0 inv 1 val
         public void iniciaServidorImpresora()
@@ -199,11 +295,12 @@ namespace Impresora_servidor
             NetworkStream ns = new NetworkStream(cliente);
             StreamReader sr = new StreamReader(ns);
             StreamWriter sw = new StreamWriter(ns);
-            string mensaje, valorDuplex, numCopias;
+            string mensaje;
             try
             {
+
                 mensaje = sr.ReadLine();
-             
+                Console.WriteLine("Server: " + mensaje);
                 if (mensaje == "ping")
                 {
                     Console.WriteLine("Enviando datos al cliente " + ieCliente.Address + " " + nombreImpresora);
@@ -213,32 +310,13 @@ namespace Impresora_servidor
                 }
                 else
                 {
-                    Console.WriteLine(mensaje);
-                    Console.WriteLine("Cliente " + ieCliente.Address + "enviando documento: " + mensaje);
-                                   
-                   
+                    Console.WriteLine("Server: " + mensaje);
+                    Console.WriteLine("Server: cliente " + ieCliente.Address + "enviando documento: " + mensaje);
                     if (!comprobarArchivo(mensaje)) //borrar si archivo existe y permitir añadir nuevo
                     {
-                        
-                        if (sistemaValido == 1)
-                        {
-                            numCopias = sr.ReadLine();
-                            valorDuplex = sr.ReadLine();
-
-                            Console.WriteLine(mensaje + " " + numCopias + " " + valorDuplex + " ");
-
-                            //1 = lib pdf
-                            //imprimePDF(nombreImpresora, "PaperKind.A4", archivo, 1, Duplex.Simplex);
-
-                        }
-                        else
-                        {
-                            //0 = lib c#
-                            //imprime(nombreImpresora, archivo, 1, Duplex.Simplex);
-                        }
-
-                        //TODO arreglar
-                        using (var output = File.Create(docImpresora + "\\" + mensaje)) //TODO stream, UnauthorizedAccessException
+                        //TODO 
+                        Console.WriteLine("Server: " + docImpresora + "//" + mensaje);
+                        using (var output = File.Create(docImpresora + mensaje)) //TODO stream, UnauthorizedAccessException
                         {
                             //1KB
                             var buffer = new byte[1024];
@@ -250,6 +328,56 @@ namespace Impresora_servidor
                         }
                         //
 
+
+
+
+                        if (sistemaValido == 1)
+                        {
+                            //   numCopias = sr.ReadLine();
+                            // valorDuplex = sr.ReadLine();
+                            /*
+                            if (valorDuplex)
+                            {
+                                valorDuplex = Duplex.Default;
+                            }
+                            else
+                            {
+                                valorDuplex = Duplex.Simplex;
+                            }
+                            */
+                            //Console.WriteLine(mensaje + " " + numCopias + " " + valorDuplex + " ");
+
+                            //1 = lib pdf
+                            //imprimePDF(nombreImpresora, "PaperKind.A4", archivo, 1, Duplex.Simplex);
+
+                        }
+                        else
+                        {
+                            /*
+                             * numCopias = sr.ReadLine();
+                             * valorDuplex = sr.ReadLine();
+                            if (valorDuplex)
+                            {
+                                valorDuplex = Duplex.Default;
+                            }
+                            else
+                            {
+                                valorDuplex = Duplex.Simplex;
+                            }
+                            */
+                            //Console.WriteLine(mensaje + " " + numCopias + " " + valorDuplex + " ");
+                            //0 = lib c#
+                            //imprime(nombreImpresora, archivo, 1, Duplex.Simplex);
+                        }
+
+                        var startTimeSpan = TimeSpan.Zero;
+                        var periodTimeSpan = TimeSpan.FromSeconds(4);
+                        //string var = "";
+                        var timer = new System.Threading.Timer((e) =>
+                        {
+                            //var = impCheck();
+                            sw.WriteLine(impCheck());
+                        }, null, startTimeSpan, periodTimeSpan);
                     }
                     else
                     {
@@ -259,56 +387,25 @@ namespace Impresora_servidor
             }
             catch (IOException e)
             {
-                Console.WriteLine("Se ha producido un error con el archivo SERVIDOR. Error: " + e.Message);
+                Console.WriteLine("Server: se ha producido un error con el archivo. Error: " + e.Message);
             }
-            catch (ObjectDisposedException)
-            {
-
-            }
+            catch (ObjectDisposedException) { }
             catch (SocketException)
             {
-               // cliente.Close();
-               // s.Close();
+                // cliente.Close();
+                // s.Close();
             }
             finally
             {
                 sw.Close();
                 sr.Close();
                 ns.Close();
+                cliente.Shutdown(SocketShutdown.Both);
                 cliente.Close();
                 Console.WriteLine("Conexión cerrada");
             }
         }
 
-        //impresora sólo devuelve estado cuando imprime
-        public void estado()
-        {
-
-            // Online               0
-
-            // Lid Open        4194432
-
-            // Out of paper      144
-
-            // Out of paper/Lid open 4194448
-
-            // Printing             1024
-
-            // Initializing          32768
-
-            // Manual Feed in Progress 160
-
-            // Offline                 4096
-            /*
-             * foreach estado in impresora
-             * switch estado
-             * case 0
-             *  console -> online
-             * case 144
-             *  console -> papel
-             * 
-             */ 
-        }
 
         //Return 1 usa lib PDF, 0 C# lib 
         private int infOS()
@@ -381,7 +478,8 @@ namespace Impresora_servidor
                 //Borra datos previos 
                 Directory.Delete(docImpresora, true);
                 Directory.CreateDirectory(docImpresora);
-            }else
+            }
+            else
             {
                 Directory.CreateDirectory(docImpresora);
             }
@@ -389,8 +487,9 @@ namespace Impresora_servidor
 
         private bool comprobarArchivo(string archivo)
         {
-            if(File.Exists(docImpresora +"//"+archivo)) { 
-                    return true;
+            if (File.Exists(docImpresora + "//" + archivo))
+            {
+                return true;
             }
             else
             {
@@ -400,10 +499,25 @@ namespace Impresora_servidor
 
         static void Main(string[] args)
         {
+            var startTimeSpan = TimeSpan.Zero;
+            var periodTimeSpan = TimeSpan.FromSeconds(4);
             Program imp = new Program();
             imp.carpetaDoc();
             sistemaValido = imp.infOS();
-            imp.iniciaServidorImpresora();
+            //imp.iniciaServidorImpresora();
+            imp.detectarImpresora();
+            Console.WriteLine(imp.imprimePDF(imp.nombreImpresora, "C:\\Users\\Mario\\Desktop\\prueba.pdf", 2, Duplex.Horizontal));
+            /*
+            bool var = false;
+            if (!var)
+            {
+                timer = new System.Threading.Timer((e) =>
+                {
+                    imp.impCheck();
+                }, null, startTimeSpan, periodTimeSpan);
+            }
+            */
+            Console.WriteLine("Sale");
             Console.ReadLine();
         }
     }
