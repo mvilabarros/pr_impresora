@@ -5,9 +5,21 @@ using iTextSharp.text.pdf;
 
 namespace Impresora_cliente
 {
+    //TODO arreglar wordPDF
+
     class funcionesPdf
     {
+        /// <summary>
+        /// Método get y sed de un Document
+        /// </summary>
         private Microsoft.Office.Interop.Word.Document wordDocument { get; set; }
+
+        /// <summary>
+        /// Método que dado un string entradaArchivo, lo convierte en PDF usando las librerías de Office.
+        /// Devuelve el archivo convertido en salidaArchivo.
+        /// </summary>
+        /// <param name="entradaArchivo"></param>
+        /// <param name="salidaArchivo"></param>
         public void wordPdf(string entradaArchivo, string salidaArchivo)
         {
             //necesario Office para convertir archivos!         
@@ -24,48 +36,16 @@ namespace Impresora_cliente
             //TODO verificar archivo existe, si existe no hay error ni se crea de nuevo.
         }
 
-        /*
-        public void wordPdf(string entradaArchivo, string salidaArchivo)
-        {
-            //necesario Office para convertir archivos!         
-            {
-                string escritorio = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                string file = entradaArchivo;
-                switch (Path.GetExtension(entradaArchivo))
-                {
-                    //Word
-                    case ".doc":
-                    case ".docx":
-                        Microsoft.Office.Interop.Word.Application appWord = new Microsoft.Office.Interop.Word.Application();
-                        wordDocument = appWord.Documents.Open(@file);
-                        wordDocument.ExportAsFixedFormat(escritorio + "/" + "mop.pdf", WdExportFormat.wdExportFormatPDF);
-                        wordDocument.Close();
-                        appWord.Quit();
-                        break;
-                    //Excel
-                    case ".xls":
-                    case ".xlsx":
-                        Microsoft.Office.Interop.Excel.Application appExcel = new Microsoft.Office.Interop.Excel.Application();
-                        wordDocument = appExcel.docu.Open(@file);
-                        wordDocument.ExportAsFixedFormat(escritorio + "/" + "mop.pdf", WdExportFormat.wdExportFormatPDF);
-                        wordDocument.Close();
-                        appWord.Quit();
-                        break;
-                    //PowerPoint
-                    case ".ppt":
-                    case ".pptx":
-                        break;
-                    //Access
-                    case ".accdr":
-                    case ".accdt":
-                        break;
-                }
-              
-            }
-            //TODO verificar archivo existe, si existe no hay error ni se crea de nuevo.
-        }
-        */
-
+        /// <summary>
+        /// Método que dado un archivo entradaPdf y una carpeta, recorta el archivo dependiendo de la expresión usada y
+        /// lo guarda de nuevo con el nombre modificado.
+        /// Devuelve un string con la ruta del archivo cortado.
+        /// </summary>
+        /// <param name="entradaPdf"></param>
+        /// <param name="salidaPdf"></param>
+        /// <param name="carpeta"></param>
+        /// <param name="paginaSelec"></param>
+        /// <returns></returns>
         public string cortarPDF(string entradaPdf, string salidaPdf, string carpeta, string paginaSelec)
         {
             string inputPdf = entradaPdf;
@@ -84,13 +64,25 @@ namespace Impresora_cliente
             return outputPath + "\\" + outputPdf;
         }
 
+        /// <summary>
+        /// Método que muestra el número de páginas de un documento PDF.
+        /// Devuelve un int con el número de páginas.
+        /// </summary>
+        /// <param name="archivo"></param>
+        /// <returns></returns>
         public int rangoPdf(string archivo)
         {
             var pdfDocument = PdfiumViewer.PdfDocument.Load(archivo);
             return pdfDocument.PageCount;
         }
 
-
+        //NO SE USA -> El servidor ya ejecuta n veces un PDF en las funciones de impresión.
+        /// <summary>
+        /// Método que repite el documento n veces y lo añade al original. 
+        /// </summary>
+        /// <param name="origen"></param>
+        /// <param name="destino"></param>
+        /// <param name="repetir"></param>
         public void repetirPdf(string origen, string destino, int repetir)
         {
             for (int i = 0; i < repetir; i++)
@@ -107,7 +99,12 @@ namespace Impresora_cliente
             }
         }
 
-
+        /// <summary>
+        /// Método que comprueba si la ruta de un archivo existe. 
+        /// Devuelve true si existe.
+        /// </summary>
+        /// <param name="archivo"></param>
+        /// <returns></returns>
         public bool compruebaArchivo(string archivo)
         {
             if (File.Exists(Path.GetFullPath(archivo)))

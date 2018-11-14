@@ -31,16 +31,16 @@ namespace Impresora_servidor
         //
         static string dataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         static string docImpresora = Path.Combine(dataDir, "docImpresora");
-        //
         static bool conectar = false, apagar = false;
         Socket s = null;
-        //
         static int sistemaValido = 0;
-        //
         static System.Threading.Timer timer;
-        //
         static string estadoActualImpresora;
-        //
+
+        /// <summary>
+        /// Método que busca en el sistema que se ejecuta, una impresora instalada,
+        /// muestra si está encendida y guarda el valor en estadoImpresora.
+        /// </summary>
         public void detectarImpresora()
         {
             //managementScope
@@ -75,16 +75,16 @@ namespace Impresora_servidor
             }
         }
 
-        /*
-        Default	   -1	
-
-        Horizontal	3	dos lados horinzontal
-
-        Simplex	    1	un lado
-
-        Vertical	2	dos lados vertical
-         */
-
+        /// <summary>
+        /// Método que usa el comando "print" de Windows para imprimir un archivo.
+        /// Duplex usa varios valores: horizontal (dos lados horizontal), simplex (un lado), vertical (dos lados vertical), default.
+        /// Copias es el número de veces que se va a imprimir el archivo.
+        /// </summary>
+        /// <param name="impresora"></param>
+        /// <param name="archivo"></param>
+        /// <param name="copias"></param>
+        /// <param name="duplex"></param>
+        /// <returns></returns>
         public bool imprime(string impresora, string archivo, short copias, Duplex duplex)
         {
             try
@@ -115,6 +115,16 @@ namespace Impresora_servidor
             }
         }
 
+        /// <summary>
+        /// Método que usa la librería PdfiumViewer para imprimir PDF sin Adobe.
+        /// Duplex usa varios valores: horizontal (dos lados horizontal), simplex (un lado), vertical (dos lados vertical), default.
+        /// Copias es el número de veces que se va a imprimir el archivo.
+        /// </summary>
+        /// <param name="impresora"></param>
+        /// <param name="archivo"></param>
+        /// <param name="copias"></param>
+        /// <param name="duplex"></param>
+        /// <returns></returns>
         public bool imprimePDF(string impresora, string archivo, int copias, Duplex duplex)
         {
             try
@@ -127,29 +137,12 @@ namespace Impresora_servidor
                     Duplex = duplex
                 };
 
-                // Propiedades página, tamaño página
-                /*
-                var pageSettings = new PageSettings(printerSettings)
-                {
-                    Margins = new Margins(0, 0, 0, 0),
-                };
-                foreach (PaperSize paperSize in printerSettings.PaperSizes)
-                {
-                    if (paperSize.PaperName == papel)
-                    {
-                        pageSettings.PaperSize = paperSize;
-                        break;
-                    }
-                }
-                */
-
                 // Imprimir PDF
                 using (var document = PdfDocument.Load(archivo))
                 {
                     using (var printDocument = document.CreatePrintDocument())
                     {
                         printDocument.PrinterSettings = printerSettings;
-                        //printDocument.DefaultPageSettings = pageSettings;
                         printDocument.PrintController = new StandardPrintController();
                         printDocument.Print();
                     }
@@ -163,6 +156,12 @@ namespace Impresora_servidor
             }
         }
 
+        //Funciona, pero dependiendo de la impresora sólo muestra que está imprimiendo aunque la impresora no tenga papel,
+        //no tenga tinta, etc. porque ya lo muestra con los drivers propios en vez de mostrarlos en la cola de impresión.
+        /// <summary>
+        /// Método que accede a la cola de impresión de Windows y recoge un trabajo que envía a Trabajos()
+        /// </summary>
+        /// <returns></returns>
         public string impCheck()
         {
             estadoActualImpresora = "";
@@ -184,6 +183,11 @@ namespace Impresora_servidor
             return estadoActualImpresora;
         }
 
+        /// <summary>
+        /// Método que dado un trabajo devuelve un estado de la impresora actual.
+        /// </summary>
+        /// <param name="trabajo"></param>
+        /// <returns></returns>
         private bool Trabajos(PrintSystemJobInfo trabajo)
         {
             if (((trabajo.JobStatus & PrintJobStatus.Completed) == PrintJobStatus.Completed)
@@ -249,9 +253,9 @@ namespace Impresora_servidor
             }
         }
 
-
-
-        //TODO limite puerto 0 inv 1 val
+        /// <summary>
+        /// Método que crea un socket para recibir clientes y llama a hiloCliente cuando uno se conecta.
+        /// </summary>
         public void iniciaServidorImpresora()
         {
             while (!conectado)
@@ -286,6 +290,14 @@ namespace Impresora_servidor
                 hilo.Start(cliente);
             }
         }
+
+        /// <summary>
+        /// Método que usando un socket, recibe parámetros "ping" e "imprimir"
+        /// ping recoge el valor del nombre de la impresora y el estado de la impresora que detectarImpresora recoge previamente.
+        /// imprimir guarda un archivo en la carpeta caché y varios parámetros que se usan en los método de impresión.
+        /// A mayores muestra el estado de la impresión cada 5 segundos.
+        /// </summary>
+        /// <param name="socket"></param>
         public void hiloCliente(object socket)
         {
             //TODO comprobar servidor tiene impresora 
@@ -295,7 +307,9 @@ namespace Impresora_servidor
             NetworkStream ns = new NetworkStream(cliente);
             StreamReader sr = new StreamReader(ns);
             StreamWriter sw = new StreamWriter(ns);
-            string mensaje;
+            string mensaje, numCopias, valorDuplex, archivo;
+            Duplex aux = Duplex.Default;
+
             try
             {
 
@@ -312,11 +326,10 @@ namespace Impresora_servidor
                 {
                     Console.WriteLine("Server: " + mensaje);
                     Console.WriteLine("Server: cliente " + ieCliente.Address + "enviando documento: " + mensaje);
-                    if (!comprobarArchivo(mensaje)) //borrar si archivo existe y permitir añadir nuevo
+                    if (!comprobarArchivo(mensaje)) //No permite imprimir archivos con mismo nombre.
                     {
-                        //TODO 
                         Console.WriteLine("Server: " + docImpresora + "//" + mensaje);
-                        using (var output = File.Create(docImpresora + mensaje)) //TODO stream, UnauthorizedAccessException
+                        using (var output = File.Create(docImpresora + mensaje))
                         {
                             //1KB
                             var buffer = new byte[1024];
@@ -325,58 +338,48 @@ namespace Impresora_servidor
                             {
                                 output.Write(buffer, 0, bytesRead);
                             }
+                            archivo = docImpresora + "//" + mensaje;
                         }
-                        //
-
-
-
-
+                        //Impresión de archivo.
                         if (sistemaValido == 1)
                         {
-                            //   numCopias = sr.ReadLine();
-                            // valorDuplex = sr.ReadLine();
-                            /*
-                            if (valorDuplex)
+                            numCopias = sr.ReadLine();
+                            valorDuplex = sr.ReadLine();
+                            if (Convert.ToBoolean(valorDuplex))
                             {
-                                valorDuplex = Duplex.Default;
+                                aux = Duplex.Horizontal;
                             }
                             else
                             {
-                                valorDuplex = Duplex.Simplex;
+                                aux = Duplex.Simplex;
                             }
-                            */
-                            //Console.WriteLine(mensaje + " " + numCopias + " " + valorDuplex + " ");
 
                             //1 = lib pdf
-                            //imprimePDF(nombreImpresora, "PaperKind.A4", archivo, 1, Duplex.Simplex);
+                            imprimePDF(nombreImpresora, archivo, Convert.ToInt32(numCopias), aux);
 
                         }
                         else
                         {
-                            /*
-                             * numCopias = sr.ReadLine();
-                             * valorDuplex = sr.ReadLine();
-                            if (valorDuplex)
+                            numCopias = sr.ReadLine();
+                            valorDuplex = sr.ReadLine();
+                            if (Convert.ToBoolean(valorDuplex))
                             {
-                                valorDuplex = Duplex.Default;
+                                aux = Duplex.Horizontal;
                             }
                             else
                             {
-                                valorDuplex = Duplex.Simplex;
+                                aux = Duplex.Simplex;
                             }
-                            */
-                            //Console.WriteLine(mensaje + " " + numCopias + " " + valorDuplex + " ");
+
                             //0 = lib c#
-                            //imprime(nombreImpresora, archivo, 1, Duplex.Simplex);
+                            imprime(nombreImpresora, archivo, Convert.ToInt16(numCopias), aux);
                         }
 
                         var startTimeSpan = TimeSpan.Zero;
-                        var periodTimeSpan = TimeSpan.FromSeconds(4);
-                        //string var = "";
+                        var periodTimeSpan = TimeSpan.FromSeconds(5);
                         var timer = new System.Threading.Timer((e) =>
                         {
-                            //var = impCheck();
-                            sw.WriteLine(impCheck());
+                            impCheck();
                         }, null, startTimeSpan, periodTimeSpan);
                     }
                     else
@@ -390,6 +393,7 @@ namespace Impresora_servidor
                 Console.WriteLine("Server: se ha producido un error con el archivo. Error: " + e.Message);
             }
             catch (ObjectDisposedException) { }
+            catch (UnauthorizedAccessException) { }
             catch (SocketException)
             {
                 // cliente.Close();
@@ -407,7 +411,12 @@ namespace Impresora_servidor
         }
 
 
-        //Return 1 usa lib PDF, 0 C# lib 
+        /// <summary>
+        /// Método que comprueba la versión actual del sistema operativo que ejecuta el servidor.
+        /// Devuelve 1 si es un sistema válido para el uso de otros métodos.
+        /// 1 librería pdf, 0 librería compatible.
+        /// </summary>
+        /// <returns></returns>
         private int infOS()
         {
             OperatingSystem os = Environment.OSVersion;
@@ -471,6 +480,10 @@ namespace Impresora_servidor
             return valor;
         }
 
+        /// <summary>
+        /// Método que crea la carpeta caché donde guardar los archivos recibidos.
+        /// Borra la carpeta si hay una existente y la crea de nuevo vacía.
+        /// </summary>
         private void carpetaDoc()
         {
             if (Directory.Exists(docImpresora))
@@ -485,6 +498,11 @@ namespace Impresora_servidor
             }
         }
 
+        /// <summary>
+        /// Método que comprueba si un archivo existe.
+        /// </summary>
+        /// <param name="archivo"></param>
+        /// <returns></returns>
         private bool comprobarArchivo(string archivo)
         {
             if (File.Exists(docImpresora + "//" + archivo))
@@ -497,27 +515,19 @@ namespace Impresora_servidor
             }
         }
 
+        /// <summary>
+        /// Método que inicializa la carpeta caché, recoge el valor del sistema para usar un método de impresión u otro,
+        /// detecta el estado de la impresora y el servidor.
+        /// </summary>
+        /// <param name="args"></param>
         static void Main(string[] args)
         {
-            var startTimeSpan = TimeSpan.Zero;
-            var periodTimeSpan = TimeSpan.FromSeconds(4);
             Program imp = new Program();
             imp.carpetaDoc();
             sistemaValido = imp.infOS();
-            //imp.iniciaServidorImpresora();
             imp.detectarImpresora();
-            Console.WriteLine(imp.imprimePDF(imp.nombreImpresora, "C:\\Users\\Mario\\Desktop\\prueba.pdf", 2, Duplex.Horizontal));
-            /*
-            bool var = false;
-            if (!var)
-            {
-                timer = new System.Threading.Timer((e) =>
-                {
-                    imp.impCheck();
-                }, null, startTimeSpan, periodTimeSpan);
-            }
-            */
-            Console.WriteLine("Sale");
+            //imp.iniciaServidorImpresora();
+           
             Console.ReadLine();
         }
     }

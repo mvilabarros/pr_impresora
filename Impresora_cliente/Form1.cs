@@ -10,6 +10,8 @@ using PdfiumViewer;
 
 namespace Impresora_cliente
 {
+    //TODO terminar acerca de
+    
     public partial class Form1 : Form
     {
         //TODO convertir archivo a PDF -> aplicar opciones -> nuevo PDF -> enviar al servidor
@@ -46,15 +48,20 @@ namespace Impresora_cliente
             InitializeComponent();
         }
 
+        //FALLA -> Llamar al método conexion con el valor ping hará que los archivos enviados estén corruptos desde un principio.
+        /// <summary>
+        /// Método que inicializa elementos del formulario, así como la creación de una carpeta que servirá de caché.
+        /// LLama al método conexión para verificar si el servidor está disponible.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Form1_Load(object sender, EventArgs e)
         {
             Directory.CreateDirectory(documentosImpresora);
-
             btnPdf.Enabled = false;
             btnImprimir.Enabled = false;
             lblIntercalado.Enabled = false;
-
-            //conexion(ip, puerto, "ping");
+            conexion(ip, puerto, "ping");
             rbTodo.Checked = true;
 
             for (int i = 1; i <= hojas; i++)
@@ -70,12 +77,19 @@ namespace Impresora_cliente
             }
         }
 
-        private void btnImprimir_Click(object sender, EventArgs e) //btnImprimir
+        //FALLA -> Este método funciona parcialmente. 
+        //Por alguna razón al cargar funcionesPdf y sin modificar las rutas por los check.Checked, el archivo está corrupto.
+        //Si se ejecuta antes conexion() funciona la primera vez, pero 
+        /// <summary>
+        /// Método que llama a las funcionesPdf para poder cortar el archivo por rango o por expresión.
+        /// Llama a imprimir y le envía una ip, puerto y string imprimir.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnImprimir_Click(object sender, EventArgs e)
         {
-
             funcionesPdf pdf = new funcionesPdf();
 
-            //btnPing -> conexion("127.0.0.1", 31416, "ping");
             if (rbRango.Checked)
             {
                 string txt = txtInicio.Text + "-" + txtFin.Text;
@@ -95,13 +109,16 @@ namespace Impresora_cliente
                     nombreArchivo = Path.GetFileName(archivoCortado);
                     archivo = archivoCortado;
                 }
-
             }
-            conexion(ip, puerto, "imprimir"); //añadir parametros conexion
 
-            // Console.WriteLine("imprimir " + Path.GetFullPath(archivo));
+            conexion(ip, puerto, "imprimir");
         }
 
+        /// <summary>
+        /// Método que muestra un modal para cambiar el puerto y la ip para conectarse al servidor.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnPing_Click(object sender, EventArgs e)
         {
             PingForm ping = new PingForm();
@@ -111,7 +128,6 @@ namespace Impresora_cliente
             {
                 case DialogResult.OK:
                     conexion(ping.txtIP.Text, Convert.ToInt32(ping.txtPuerto.Text), "ping");
-                    //conexion("127.0.0.1", 31416, "ping");
                     break;
                 case DialogResult.Cancel:
                     con = false;
@@ -119,6 +135,14 @@ namespace Impresora_cliente
             }
         }
 
+        /// <summary>
+        /// Método que dado una ip, puerto y opcion se conecta al servidor.
+        /// Si opcion ping envía "ping" al servidor y recibe el estado de este.
+        /// Si opcion imprimir envía "imprimir", además de varios parámetros de impresión y un archivo.
+        /// </summary>
+        /// <param name="ip"></param>
+        /// <param name="puerto"></param>
+        /// <param name="opcion"></param>
         private void conexion(string ip, int puerto, string opcion)
         {
             try
@@ -140,7 +164,6 @@ namespace Impresora_cliente
 
                     if (opcion == "imprimir")
                     {
-                        //sw.WriteLine(nombreArchivo +"-"+ cbCopias.Text + "-" + checkIntercalado.Checked.ToString());
                         sw.WriteLine(nombreArchivo);
                         sw.Flush();
                         servidor.SendFile(archivo);
@@ -155,9 +178,7 @@ namespace Impresora_cliente
                         sw.Flush();
 
                         Console.WriteLine("NOMBRE ARCHIVO:" + nombreArchivo + "~~" + archivo);
-
                     }
-                    //
                     else
                     {
                         sw.WriteLine("ping");
@@ -187,16 +208,28 @@ namespace Impresora_cliente
                 if (sw != null) sw.Close();
                 if (sr != null) sr.Close();
                 if (ns != null) ns.Close();
-                servidor.Shutdown(SocketShutdown.Both);
+                if(con)servidor.Shutdown(SocketShutdown.Both);
                 servidor.Close();
             }
         }
 
+        /// <summary>
+        /// Método que muestra un modal con las librerías usadas.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void acercadeToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
         }
 
+        /// <summary>
+        /// Método que abre un gestor de archivos para seleccionar un archivo pdf o txt.
+        /// Guarda la ruta del archivo en una variable.
+        /// LLama a funcionesPdf.rango para poder mostrar el rango máximo disponible en el formulario.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnbuscar_Click(object sender, EventArgs e)
         {
             Stream str = null;
@@ -238,6 +271,11 @@ namespace Impresora_cliente
             }
         }
 
+        /// <summary>
+        /// Método que llama al formulario CargarPdf para poder mostrar el archivo pdf.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnPdf_Click(object sender, EventArgs e)
         {
             //cambiar texto form a nombre archivo 
@@ -250,7 +288,11 @@ namespace Impresora_cliente
             //else no hay archivo seleccionado
         }
 
-
+        /// <summary>
+        /// Método que cierra el cliente y borra la carpeta de caché.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void salirToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (Directory.Exists(documentosImpresora))

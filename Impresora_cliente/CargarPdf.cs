@@ -18,6 +18,11 @@ namespace Impresora_cliente
             InitializeComponent();
         }
     
+        /// <summary>
+        /// Método que carga en el formulario los botones y llama a MostrarPdf().
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void CargarPdf_Load(object sender, EventArgs e)
         {
             btnMas.Text = char.ConvertFromUtf32(0x2192);
@@ -27,6 +32,10 @@ namespace Impresora_cliente
             MostrarPdf(ruta);
         }
 
+        /// <summary>
+        /// Método que dada una ruta muestra un archivo PDF en el formulario.
+        /// </summary>
+        /// <param name="valor"></param>
         private void MostrarPdf(string valor)
         {
             // Crear PDF            
@@ -36,8 +45,16 @@ namespace Impresora_cliente
             pdfRenderer1.Load(pdfDocument);
         }
 
+        /// <summary>
+        /// Método get y set de string ruta
+        /// </summary>
         public string ruta { get;  set; }
 
+        /// <summary>
+        /// Método que retrocede una página en un documento PDF cargado.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnMenos_Click(object sender, EventArgs e)
         {
             if (pdfRenderer1.Page > 0)
@@ -47,6 +64,11 @@ namespace Impresora_cliente
             txtPaginas.Text = (pdfRenderer1.Page + 1).ToString();
         }
 
+        /// <summary>
+        /// Método que avanza una página en un documento PDF cargado.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnMas_Click(object sender, EventArgs e)
         {
             if (pdfRenderer1.Page <= paginas)

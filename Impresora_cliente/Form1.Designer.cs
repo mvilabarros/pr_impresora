@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.btnImprimir = new System.Windows.Forms.Button();
             this.lbArchivo = new System.Windows.Forms.Label();
@@ -59,6 +60,7 @@
             this.ayudaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.acercadeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.btnPdf = new System.Windows.Forms.Button();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.gbImpresora.SuspendLayout();
             this.gbPaginas.SuspendLayout();
             this.gbCopias.SuspendLayout();
@@ -196,6 +198,7 @@
             this.txtSeleccion.Name = "txtSeleccion";
             this.txtSeleccion.Size = new System.Drawing.Size(156, 20);
             this.txtSeleccion.TabIndex = 2;
+            this.toolTip1.SetToolTip(this.txtSeleccion, "Expresión 1-3, !2 imprime hojas 1 y 3");
             // 
             // rbSeleccion
             // 
@@ -404,6 +407,7 @@
         private System.Windows.Forms.Label lblInicio;
         private System.Windows.Forms.RadioButton rbRango;
         private System.Windows.Forms.Button btnPdf;
+        private System.Windows.Forms.ToolTip toolTip1;
     }
 }
 
