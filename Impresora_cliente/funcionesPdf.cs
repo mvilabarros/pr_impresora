@@ -10,28 +10,28 @@ namespace Impresora_cliente
     class funcionesPdf
     {
         /// <summary>
-        /// Método get y sed de un Document
+        /// Método get y sed de un Document Word
         /// </summary>
         private Microsoft.Office.Interop.Word.Document wordDocument { get; set; }
 
         /// <summary>
-        /// Método que dado un string entradaArchivo, lo convierte en PDF usando las librerías de Office.
-        /// Devuelve el archivo convertido en salidaArchivo.
+        /// Método que dado una ruta de un archivo, nombre y ruta de la carpeta caché convierte un archivo a pdf.
+        /// Necesita Office para convertir los archivos.
         /// </summary>
-        /// <param name="entradaArchivo"></param>
-        /// <param name="salidaArchivo"></param>
-        public void wordPdf(string entradaArchivo, string salidaArchivo)
+        /// <param name="archivoPath"></param>
+        /// <param name="nombreArchivo"></param>
+        /// <param name="path"></param>
+        /// <returns></returns>        
+        public string wordPdf(string archivoPath, string nombreArchivo, string path)
         {
-            //necesario Office para convertir archivos!         
             {
-                string escritorio = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                string file = entradaArchivo;
-
                 Microsoft.Office.Interop.Word.Application appWord = new Microsoft.Office.Interop.Word.Application();
-                wordDocument = appWord.Documents.Open(@file);
-                wordDocument.ExportAsFixedFormat(escritorio + "/" + "mop.pdf", WdExportFormat.wdExportFormatPDF);
+                string ruta = path + "\\" + nombreArchivo + ".pdf";
+                wordDocument = appWord.Documents.Open(archivoPath);
+                wordDocument.ExportAsFixedFormat(ruta , WdExportFormat.wdExportFormatPDF);
                 wordDocument.Close();
                 appWord.Quit();
+                return ruta;
             }
             //TODO verificar archivo existe, si existe no hay error ni se crea de nuevo.
         }

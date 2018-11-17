@@ -7,11 +7,12 @@ using System.Windows.Forms;
 using Microsoft.Office.Interop.Word;
 using iTextSharp.text.pdf;
 using PdfiumViewer;
+using System.Threading;
 
 namespace Impresora_cliente
 {
     //TODO terminar acerca de
-    
+
     public partial class Form1 : Form
     {
         //TODO convertir archivo a PDF -> aplicar opciones -> nuevo PDF -> enviar al servidor
@@ -26,7 +27,7 @@ namespace Impresora_cliente
         static string dataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         static string documentosImpresora = Path.Combine(dataDir, "documentosImpresora");
 
-        private string archivo, nombreArchivo, nombreImpresora, estadoImpresora;
+        private string archivo, nombreArchivo, nombreArchivoN, ruta, extension, nombreImpresora, estadoImpresora;
 
         private string archivoCortado;
 
@@ -57,7 +58,7 @@ namespace Impresora_cliente
         /// <param name="e"></param>
         private void Form1_Load(object sender, EventArgs e)
         {
-            Directory.CreateDirectory(documentosImpresora);
+            carpetaData();
             btnPdf.Enabled = false;
             btnImprimir.Enabled = false;
             lblIntercalado.Enabled = false;
@@ -79,7 +80,7 @@ namespace Impresora_cliente
 
         //FALLA -> Este método funciona parcialmente. 
         //Por alguna razón al cargar funcionesPdf y sin modificar las rutas por los check.Checked, el archivo está corrupto.
-        //Si se ejecuta antes conexion() funciona la primera vez, pero 
+        //Si se ejecuta antes conexion() funciona la primera vez, pero no funcionaría la parte de cortar pdf
         /// <summary>
         /// Método que llama a las funcionesPdf para poder cortar el archivo por rango o por expresión.
         /// Llama a imprimir y le envía una ip, puerto y string imprimir.
@@ -96,7 +97,9 @@ namespace Impresora_cliente
                 if (txtInicio.Text != null && txtFin.Text != null)
                 {
                     archivoCortado = pdf.cortarPDF(archivo, archivoCortado, documentosImpresora, txt);
+                    nombreArchivo = null;
                     nombreArchivo = Path.GetFileName(archivoCortado);
+                    archivo = null;
                     archivo = archivoCortado;
                 }
             }
@@ -106,7 +109,9 @@ namespace Impresora_cliente
                 if (txtSeleccion.Text != null)
                 {
                     archivoCortado = pdf.cortarPDF(archivo, archivoCortado, documentosImpresora, txtSeleccion.Text);
+                    nombreArchivo = null;
                     nombreArchivo = Path.GetFileName(archivoCortado);
+                    archivo = null;
                     archivo = archivoCortado;
                 }
             }
@@ -160,24 +165,23 @@ namespace Impresora_cliente
                     sw.WriteLine(nombreArchivo);
                     sw.Flush();
                     servidor.SendFile(archivo);
-                    lbArchivo.Text += "Enviando archivo...";
+                    lbArchivo.Text = "Enviando archivo...";
 
                     if (opcion == "imprimir")
                     {
                         sw.WriteLine(nombreArchivo);
                         sw.Flush();
                         servidor.SendFile(archivo);
-                        lbArchivo.Text += "Enviando archivo...";
+                        lbArchivo.Text = "Enviando archivo...";
 
                         sw.WriteLine(cbCopias.Text);
                         sw.Flush();
-                        lbArchivo.Text += " Enviando copias: " + cbCopias.Text;
+                        //lbArchivo.Text = " Enviando copias: " + cbCopias.Text;
 
                         sw.WriteLine(checkIntercalado.Checked.ToString());
-                        lbArchivo.Text += "Enviando Duplex: " + checkIntercalado.Checked.ToString();
+                        //lbArchivo.Text = "Enviando Duplex: " + checkIntercalado.Checked.ToString();
                         sw.Flush();
-
-                        Console.WriteLine("NOMBRE ARCHIVO:" + nombreArchivo + "~~" + archivo);
+                        //Console.WriteLine("NOMBRE ARCHIVO:" + nombreArchivo + "~~" + archivo);
                     }
                     else
                     {
@@ -191,16 +195,17 @@ namespace Impresora_cliente
                     }
 
                 }
+                lbArchivo.Text = "Petición enviada.";
                 servidor.Close();
             }
             catch (SocketException ex)
             {
-                lbArchivo.Text = String.Format("Error de conexión CLIENTE: {0}" + Environment.NewLine + "Código de error: {1}({2})", ex.Message, (SocketError)ex.ErrorCode, ex.ErrorCode);
+                // lbArchivo.Text = String.Format("Error de conexión CLIENTE: {0}" + Environment.NewLine + "Código de error: {1}({2})", ex.Message, (SocketError)ex.ErrorCode, ex.ErrorCode);
                 con = false;
             }
             catch (IOException e)
             {
-                lbArchivo.Text = String.Format(e.Message);
+                //lbArchivo.Text = String.Format(e.Message);
                 con = false;
             }
             finally
@@ -208,7 +213,7 @@ namespace Impresora_cliente
                 if (sw != null) sw.Close();
                 if (sr != null) sr.Close();
                 if (ns != null) ns.Close();
-                if(con)servidor.Shutdown(SocketShutdown.Both);
+                if (con) servidor.Shutdown(SocketShutdown.Both);
                 servidor.Close();
             }
         }
@@ -220,7 +225,7 @@ namespace Impresora_cliente
         /// <param name="e"></param>
         private void acercadeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            MessageBox.Show("itextsharp\nMicrosoft Interop\nPdfiumViewer\nPrinting\nDrawing\nManagement", "Librerías usadas");
         }
 
         /// <summary>
@@ -236,7 +241,7 @@ namespace Impresora_cliente
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
 
             openFileDialog1.InitialDirectory = "c:\\";
-            openFileDialog1.Filter = "pdf (*.pdf)|*.pdf|txt (*.txt)|*.txt|Todos (*.*)|*.*";
+            openFileDialog1.Filter = "pdf (*.pdf)|*.pdf|txt (*.txt)|*.txt";
             openFileDialog1.FilterIndex = 1;
             openFileDialog1.RestoreDirectory = true;
 
@@ -244,28 +249,45 @@ namespace Impresora_cliente
             {
                 try
                 {
+                    funcionesPdf pdf = new funcionesPdf();
+
                     if ((str = openFileDialog1.OpenFile()) != null)
                     {
                         using (str)
                         {
                             //getExtension
-                            nombreArchivo = Path.GetFileName(openFileDialog1.FileName);
-                            archivo = Path.GetFullPath(openFileDialog1.FileName);
+                            string fn = openFileDialog1.FileName;
+                            nombreArchivo = Path.GetFileName(fn);
+                            nombreArchivoN = Path.GetFileNameWithoutExtension(fn);
+
+                            archivo = Path.GetFullPath(fn);
+                            extension = Path.GetExtension(fn);
                             txtDocumento.Text = archivo;
 
                             arch = true;
                             btnPdf.Enabled = true;
                             btnImprimir.Enabled = true;
                             lblIntercalado.Enabled = true;
-                            funcionesPdf pdf = new funcionesPdf();
                             txtInicio.Text = "1";
-                            txtFin.Text = pdf.rangoPdf(archivo).ToString();
                         }
                     }
+                    if (extension.Equals(".txt"))
+                    {
+                        ruta = pdf.wordPdf(archivo, nombreArchivoN, documentosImpresora);
+                        if (pdf.compruebaArchivo(ruta))
+                        {
+                            lbArchivo.Text = ruta;
+                            nombreArchivo = null;
+                            nombreArchivo = nombreArchivoN + ".pdf";
+                            archivo = null;
+                            archivo = ruta;
+                        }
+                    }
+                    txtFin.Text = pdf.rangoPdf(archivo).ToString();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Se ha producido un error con el archivo. Error: " + ex.Message);
+                    MessageBox.Show("Se ha producido un error con el archivo.");
                     arch = false;
                 }
             }
@@ -301,5 +323,24 @@ namespace Impresora_cliente
             }
             this.Close();
         }
+
+        /// <summary>
+        /// Método que crea la carpeta caché donde guardar los archivos recibidos.
+        /// Borra la carpeta si hay una existente y la crea de nuevo vacía.
+        /// </summary>
+        private void carpetaData()
+        {
+            if (Directory.Exists(documentosImpresora))
+            {
+                //Borra datos previos 
+                Directory.Delete(documentosImpresora, true);
+                Directory.CreateDirectory(documentosImpresora);
+            }
+            else
+            {
+                Directory.CreateDirectory(documentosImpresora);
+            }
+        }
+
     }
 }
