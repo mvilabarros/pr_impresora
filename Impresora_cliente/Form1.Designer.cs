@@ -37,6 +37,7 @@
             this.lblNombre = new System.Windows.Forms.Label();
             this.lblEstado = new System.Windows.Forms.Label();
             this.gbImpresora = new System.Windows.Forms.GroupBox();
+            this.lblPeticion = new System.Windows.Forms.Label();
             this.gbPaginas = new System.Windows.Forms.GroupBox();
             this.txtFin = new System.Windows.Forms.TextBox();
             this.txtInicio = new System.Windows.Forms.TextBox();
@@ -61,6 +62,7 @@
             this.acercadeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.btnPdf = new System.Windows.Forms.Button();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.pdfViewer1 = new PdfiumViewer.PdfViewer();
             this.gbImpresora.SuspendLayout();
             this.gbPaginas.SuspendLayout();
             this.gbCopias.SuspendLayout();
@@ -123,6 +125,7 @@
             // 
             // gbImpresora
             // 
+            this.gbImpresora.Controls.Add(this.lblPeticion);
             this.gbImpresora.Controls.Add(this.lblNombre);
             this.gbImpresora.Controls.Add(this.lblEstado);
             this.gbImpresora.Location = new System.Drawing.Point(12, 39);
@@ -131,6 +134,14 @@
             this.gbImpresora.TabIndex = 8;
             this.gbImpresora.TabStop = false;
             this.gbImpresora.Text = "Impresora";
+            // 
+            // lblPeticion
+            // 
+            this.lblPeticion.AutoSize = true;
+            this.lblPeticion.Location = new System.Drawing.Point(246, 29);
+            this.lblPeticion.Name = "lblPeticion";
+            this.lblPeticion.Size = new System.Drawing.Size(0, 13);
+            this.lblPeticion.TabIndex = 14;
             // 
             // gbPaginas
             // 
@@ -293,12 +304,12 @@
             // toolStripSeparator
             // 
             this.toolStripSeparator.Name = "toolStripSeparator";
-            this.toolStripSeparator.Size = new System.Drawing.Size(149, 6);
+            this.toolStripSeparator.Size = new System.Drawing.Size(93, 6);
             // 
             // salirToolStripMenuItem
             // 
             this.salirToolStripMenuItem.Name = "salirToolStripMenuItem";
-            this.salirToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.salirToolStripMenuItem.Size = new System.Drawing.Size(96, 22);
             this.salirToolStripMenuItem.Text = "&Salir";
             this.salirToolStripMenuItem.Click += new System.EventHandler(this.salirToolStripMenuItem_Click);
             // 
@@ -328,7 +339,7 @@
             // acercadeToolStripMenuItem
             // 
             this.acercadeToolStripMenuItem.Name = "acercadeToolStripMenuItem";
-            this.acercadeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.acercadeToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
             this.acercadeToolStripMenuItem.Text = "&Acerca de...";
             this.acercadeToolStripMenuItem.Click += new System.EventHandler(this.acercadeToolStripMenuItem_Click);
             // 
@@ -342,11 +353,19 @@
             this.btnPdf.UseVisualStyleBackColor = true;
             this.btnPdf.Click += new System.EventHandler(this.btnPdf_Click);
             // 
+            // pdfViewer1
+            // 
+            this.pdfViewer1.Location = new System.Drawing.Point(43, 422);
+            this.pdfViewer1.Name = "pdfViewer1";
+            this.pdfViewer1.Size = new System.Drawing.Size(588, 438);
+            this.pdfViewer1.TabIndex = 14;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(463, 420);
+            this.Controls.Add(this.pdfViewer1);
             this.Controls.Add(this.btnPdf);
             this.Controls.Add(this.menu);
             this.Controls.Add(this.gbCopias);
@@ -408,6 +427,8 @@
         private System.Windows.Forms.RadioButton rbRango;
         private System.Windows.Forms.Button btnPdf;
         private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.Label lblPeticion;
+        private PdfiumViewer.PdfViewer pdfViewer1;
     }
 }
 

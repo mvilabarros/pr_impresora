@@ -27,9 +27,7 @@ namespace Impresora_cliente
         static string dataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         static string documentosImpresora = Path.Combine(dataDir, "documentosImpresora");
 
-        private string archivo, nombreArchivo, nombreArchivoN, ruta, extension, nombreImpresora, estadoImpresora;
-
-        private string archivoCortado;
+        private string archivo, archivoCortado, nombreArchivo, nombreArchivoN, ruta, extension, nombreImpresora, estadoImpresora;
 
         static int hojas = 100;
 
@@ -80,7 +78,10 @@ namespace Impresora_cliente
 
         //FALLA -> Este método funciona parcialmente. 
         //Por alguna razón al cargar funcionesPdf y sin modificar las rutas por los check.Checked, el archivo está corrupto.
-        //Si se ejecuta antes conexion() funciona la primera vez, pero no funcionaría la parte de cortar pdf
+        //Si se ejecuta antes conexion() funciona la primera vez, pero no funcionaría la parte de cortar pdf.
+        //No encontré explicación a este fallo. Los check están en falso. No entra ni llama a las funciones, pero
+        //si se ejecutan antes de llamar a conexion(), rompe con el envío de datos.
+
         /// <summary>
         /// Método que llama a las funcionesPdf para poder cortar el archivo por rango o por expresión.
         /// Llama a imprimir y le envía una ip, puerto y string imprimir.
@@ -140,6 +141,12 @@ namespace Impresora_cliente
             }
         }
 
+        //FALLA -> Al tener las opciones anteriores activadas, no acaba de enviar el archivo y mete los últimos bytes en las variables.
+        //El servidor falla al leer los bytes en ves de los valores que se esperan.
+        //Da igual si mando antes o después de las variables, el archivo sigue corrupto.
+        //Intenté mandarlo sólo sin variables, primero las variables y luego el archivo, mandar el archivo de la misma manera que el servidor
+        //lo recibe y la única manera que funciona es sin la función conexión, sin las funciones de cargar archivo y la primera vez que se ejecuta.
+
         /// <summary>
         /// Método que dado una ip, puerto y opcion se conecta al servidor.
         /// Si opcion ping envía "ping" al servidor y recibe el estado de este.
@@ -161,21 +168,15 @@ namespace Impresora_cliente
 
                 if (servidor.Available == 0)
                 {
-                    //TODO arreglar
-                    sw.WriteLine(nombreArchivo);
-                    sw.Flush();
-                    servidor.SendFile(archivo);
-                    lbArchivo.Text = "Enviando archivo...";
-
                     if (opcion == "imprimir")
                     {
                         sw.WriteLine(nombreArchivo);
-                        sw.Flush();
+                        //sw.Flush();
                         servidor.SendFile(archivo);
                         lbArchivo.Text = "Enviando archivo...";
 
                         sw.WriteLine(cbCopias.Text);
-                        sw.Flush();
+                        //sw.Flush();
                         //lbArchivo.Text = " Enviando copias: " + cbCopias.Text;
 
                         sw.WriteLine(checkIntercalado.Checked.ToString());
@@ -195,17 +196,17 @@ namespace Impresora_cliente
                     }
 
                 }
-                lbArchivo.Text = "Petición enviada.";
+                lblPeticion.Text = "Petición " + opcion + " enviada.";
                 servidor.Close();
             }
             catch (SocketException ex)
             {
-                // lbArchivo.Text = String.Format("Error de conexión CLIENTE: {0}" + Environment.NewLine + "Código de error: {1}({2})", ex.Message, (SocketError)ex.ErrorCode, ex.ErrorCode);
+                //lblPeticion.Text = String.Format("Error de conexión CLIENTE: {0}" + Environment.NewLine + "Código de error: {1}({2})", ex.Message, (SocketError)ex.ErrorCode, ex.ErrorCode);
                 con = false;
             }
             catch (IOException e)
             {
-                //lbArchivo.Text = String.Format(e.Message);
+                //lblPeticion.Text = String.Format(e.Message);
                 con = false;
             }
             finally
@@ -213,7 +214,6 @@ namespace Impresora_cliente
                 if (sw != null) sw.Close();
                 if (sr != null) sr.Close();
                 if (ns != null) ns.Close();
-                if (con) servidor.Shutdown(SocketShutdown.Both);
                 servidor.Close();
             }
         }
@@ -255,7 +255,6 @@ namespace Impresora_cliente
                     {
                         using (str)
                         {
-                            //getExtension
                             string fn = openFileDialog1.FileName;
                             nombreArchivo = Path.GetFileName(fn);
                             nombreArchivoN = Path.GetFileNameWithoutExtension(fn);

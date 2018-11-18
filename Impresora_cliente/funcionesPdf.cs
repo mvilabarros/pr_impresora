@@ -33,7 +33,6 @@ namespace Impresora_cliente
                 appWord.Quit();
                 return ruta;
             }
-            //TODO verificar archivo existe, si existe no hay error ni se crea de nuevo.
         }
 
         /// <summary>

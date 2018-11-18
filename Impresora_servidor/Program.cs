@@ -90,7 +90,7 @@ namespace Impresora_servidor
             try
             {
                 PrinterSettings opciones = new PrinterSettings();
-                opciones.PrinterName = nombreImpresora; //
+                opciones.PrinterName = nombreImpresora;
                 opciones.Duplex = duplex;
                 opciones.Copies = copias;
                 Process p = new Process();
@@ -300,7 +300,6 @@ namespace Impresora_servidor
         /// <param name="socket"></param>
         public void hiloCliente(object socket)
         {
-            //TODO comprobar servidor tiene impresora 
             Socket cliente = (Socket)socket;
             IPEndPoint ieCliente = (IPEndPoint)cliente.RemoteEndPoint;
             Console.WriteLine("Conectado con el cliente {0} en el puerto {1}", ieCliente.Address, ieCliente.Port);
@@ -345,6 +344,7 @@ namespace Impresora_servidor
                         {
                             numCopias = sr.ReadLine();
                             valorDuplex = sr.ReadLine();
+                            Console.WriteLine(valorDuplex);
                             if (Convert.ToBoolean(valorDuplex))
                             {
                                 aux = Duplex.Horizontal;
@@ -384,13 +384,13 @@ namespace Impresora_servidor
                     }
                     else
                     {
-                        Console.Write("Archivo ya existe!");
+                        Console.Write("Archivo ya existe. Por favor, cambia el nombre del archivo.");
                     }
                 }
             }
             catch (IOException e)
             {
-                Console.WriteLine("Server: se ha producido un error con el archivo. Error: " + e.Message);
+                //Console.WriteLine("Server: se ha producido un error con el archivo. Error: " + e.Message);
             }
             catch (ObjectDisposedException) { }
             catch (UnauthorizedAccessException) { }
@@ -525,8 +525,7 @@ namespace Impresora_servidor
             Program imp = new Program();
             imp.carpetaDoc();
             sistemaValido = imp.infOS();
-            imp.detectarImpresora();
-            //imp.iniciaServidorImpresora();
+            imp.iniciaServidorImpresora();
            
             Console.ReadLine();
         }
