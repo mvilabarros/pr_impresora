@@ -307,6 +307,7 @@ namespace Impresora_servidor
             StreamReader sr = new StreamReader(ns);
             StreamWriter sw = new StreamWriter(ns);
             string mensaje, numCopias, valorDuplex, archivo;
+            bool valorChecked = false;
             Duplex aux = Duplex.Default;
 
             try
@@ -344,8 +345,18 @@ namespace Impresora_servidor
                         {
                             numCopias = sr.ReadLine();
                             valorDuplex = sr.ReadLine();
-                            Console.WriteLine(valorDuplex);
-                            if (Convert.ToBoolean(valorDuplex))
+                            if (valorDuplex.Equals("true"))
+                            {
+                                valorChecked = true;
+                            }
+                            else
+                            {
+                                valorChecked = false;
+                            }
+                            Console.WriteLine("Valor checkbox duplex: "+ valorDuplex);
+                            Console.WriteLine("Valor bool: " + valorChecked);
+
+                            if (valorChecked)
                             {
                                 aux = Duplex.Horizontal;
                             }
@@ -362,6 +373,13 @@ namespace Impresora_servidor
                         {
                             numCopias = sr.ReadLine();
                             valorDuplex = sr.ReadLine();
+                            if (valorDuplex.Equals("true"))
+                            {
+
+                            }else
+                            {
+                                valorDuplex = "false";
+                            }
                             if (Convert.ToBoolean(valorDuplex))
                             {
                                 aux = Duplex.Horizontal;
@@ -391,6 +409,10 @@ namespace Impresora_servidor
             catch (IOException e)
             {
                 //Console.WriteLine("Server: se ha producido un error con el archivo. Error: " + e.Message);
+            }
+            catch(FormatException)
+            {
+                Console.WriteLine("Error en el archivo.");
             }
             catch (ObjectDisposedException) { }
             catch (UnauthorizedAccessException) { }
